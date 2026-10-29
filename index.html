@@ -1,0 +1,1739 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Lab Rodeo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rye&family=Bitter:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one centered column, a tab bar, then a single big "wanted poster" card at a time. */
+:root{
+  --bg:#e7dfcf; --panel:#f6f0e3; --ink:#2a1c12; --muted:#6b5643;
+  --denim:#2c4d78; --brass:#a87418; --line:#c9b896;
+  --good:#2f7a3d; --bad:#a3361f; --goodbg:#dcebd6; --badbg:#f3d9cf;
+  --display:"Rye","Georgia",serif; --body:"Bitter","Georgia",serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1b1511; --panel:#271e17; --ink:#efe3cd; --muted:#b39e85;
+  --denim:#8fb2e0; --brass:#e2b14f; --line:#4a3a2b;
+  --good:#7ccb8a; --bad:#f08b6f; --goodbg:#1f3322; --badbg:#3d2119; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1b1511; --panel:#271e17; --ink:#efe3cd; --muted:#b39e85;
+  --denim:#8fb2e0; --brass:#e2b14f; --line:#4a3a2b;
+  --good:#7ccb8a; --bad:#f08b6f; --goodbg:#1f3322; --badbg:#3d2119; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-direction:column;gap:4px;text-align:left}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(2rem,6vw,2.9rem);line-height:1.05;margin:0;color:var(--ink);text-wrap:balance}
+h1 span{color:var(--brass)}
+.tag{margin:0;color:var(--muted);font-style:italic}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{font-family:var(--display);font-size:1rem;padding:10px 18px;border:2px solid var(--ink);background:transparent;color:var(--ink);border-radius:4px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 .82rem var(--body);letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--denim);color:var(--denim);box-shadow:inset 0 0 0 1px var(--denim)}
+button:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.poster{background:var(--panel);border:2px solid var(--ink);border-radius:6px;padding:22px;position:relative;
+  box-shadow:6px 6px 0 var(--line)}
+.poster{outline:1.5px dashed var(--line);outline-offset:-9px}
+.eyebrow{font:600 .75rem var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+.front{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;min-height:260px;cursor:pointer}
+.wanted{font-family:var(--display);font-size:.95rem;letter-spacing:.2em;color:var(--muted)}
+.front h2{font-family:var(--display);font-weight:400;font-size:clamp(1.8rem,6vw,2.6rem);margin:0;line-height:1.1;text-wrap:balance}
+.front .hint{color:var(--muted);font-style:italic;max-width:46ch}
+.tapnote{font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.back{display:flex;flex-direction:column;gap:12px}
+.back h2{font-family:var(--display);font-weight:400;font-size:1.6rem;margin:0;line-height:1.15}
+.range{font-family:var(--mono);font-size:.92rem;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:8px 10px;overflow-wrap:anywhere}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fact{min-width:0}
+.fact h3{margin:0 0 2px;font:700 .78rem var(--body);letter-spacing:.1em;text-transform:uppercase}
+.fact p{margin:0}
+.fact.hi h3{color:var(--bad)} .fact.lo h3{color:var(--denim)} .fact.fix h3{color:var(--good)}
+.fact.fix{grid-column:1/-1}
+.quip{margin:0;padding-top:10px;border-top:1.5px dashed var(--line);font-style:italic;color:var(--muted)}
+.what{margin:0}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.btn{font:600 .95rem var(--body);padding:10px 16px;border-radius:4px;border:2px solid var(--ink);background:var(--panel);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--denim);border-color:var(--denim);color:var(--panel)}
+.btn:disabled{opacity:.45;cursor:default}
+.count{font-family:var(--mono);color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.score{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 10px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-weight:400;font-size:1.5rem;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat small{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.qtext{font-size:1.2rem;font-weight:600;margin:0;text-wrap:balance}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;font:400 1rem var(--body);padding:12px 14px;border-radius:4px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--ink)}
+.opt.right{background:var(--goodbg);border-color:var(--good)}
+.opt.out{opacity:.35;text-decoration:line-through}
+#quiz-view .autobar{gap:6px 8px;flex-wrap:nowrap}
+#quiz-view .autobar .btn{padding:7px 10px;font-size:.85rem;flex:none}
+#quiz-view .autolbl{font-size:.75rem;gap:3px}
+#quiz-view .autolbl select{padding:6px 4px;font-size:.8rem}
+.qcd{font-family:var(--display);font-size:1.3rem;color:var(--brass);font-variant-numeric:tabular-nums;margin-left:auto}
+.opt.wrong{background:var(--badbg);border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.feedback{border-radius:4px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.feedback.ok{background:var(--goodbg)} .feedback.no{background:var(--badbg)}
+.feedback strong{font-family:var(--display);font-weight:400;font-size:1.1rem}
+.feedback.ok strong{color:var(--good)} .feedback.no strong{color:var(--bad)}
+.retry{display:inline-block;font:600 .72rem var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--bad)}
+.end{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+.end h2{font-family:var(--display);font-weight:400;font-size:2rem;margin:0}
+.end .rank{font-family:var(--display);color:var(--brass);font-size:1.3rem}
+.misslist{text-align:left;margin:0;padding-left:20px;color:var(--muted)}
+.memo{background:var(--bg);border-left:4px solid var(--brass);border-radius:3px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.memo b,.clue b{font:700 .74rem var(--body);letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+.clue{background:var(--bg);border-left:4px solid var(--denim);border-radius:3px;padding:8px 12px;display:flex;flex-direction:column;gap:2px}
+.clue b{color:var(--denim)}
+.helpers{display:flex;gap:8px;flex-wrap:wrap}
+.helper{font:600 .85rem var(--body);padding:7px 12px;border-radius:999px;border:1.5px dashed var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.helper[aria-expanded="true"]{border-style:solid;border-color:var(--brass)}
+.toprow{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.toprow .tag{min-width:0}
+.toprow .helper{flex:none}
+.memo .sing{align-self:flex-start;margin-top:4px}
+html,body{overflow-x:hidden;overscroll-behavior:none}
+body{touch-action:pan-y}
+#quiz-view{touch-action:pan-y;overscroll-behavior:contain}
+.icon{font-size:3.4rem;line-height:1;filter:drop-shadow(2px 2px 0 var(--line))}
+.icon.sm{font-size:2rem}
+.qhead{display:flex;gap:14px;align-items:center}
+.qhead>div{min-width:0;display:flex;flex-direction:column;gap:6px}
+.qhead .icon{flex:none;width:72px;height:72px;display:grid;place-items:center;font-size:2.8rem;background:var(--bg);border:2px solid var(--line);border-radius:50%}
+.backhead{display:flex;gap:12px;align-items:center}
+.abbr{font-family:var(--mono);font-size:.8rem;color:var(--denim);overflow-wrap:anywhere}
+.bt{min-width:0;display:flex;flex-direction:column;gap:2px}
+.clue.root{border-left-color:var(--good)}
+.clue.root b{color:var(--good)}
+details.history{font-size:.85rem;color:var(--muted)}
+details.history summary{cursor:pointer;font-weight:600;color:var(--ink)}
+details.history ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+html.quizmode details.history{display:none}
+#cards-view{display:flex;flex-direction:column;gap:12px;scroll-margin-top:8px}
+.autobar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center}
+.autolbl{font-size:.85rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.autoprog{flex-basis:100%;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.autoprog span{display:block;height:100%;width:100%;background:var(--brass);transform-origin:left;animation:fill linear forwards}
+@keyframes fill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.autonote{font-size:.8rem;color:var(--muted);font-style:italic}
+#list-view:not([hidden]){display:flex;flex-direction:column;gap:12px}
+.listbar{display:flex;flex-direction:column;gap:8px}
+#lsearch{font:400 1rem var(--body);padding:10px 12px;border-radius:4px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);width:100%}
+.lgroup{display:flex;flex-direction:column;gap:8px}
+.lgroup h3{font-family:var(--display);font-weight:400;font-size:1.3rem;margin:8px 0 0;color:var(--brass);border-bottom:1.5px dashed var(--line);padding-bottom:4px}
+.li{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lihead{display:flex;gap:10px;align-items:center}
+.lic{font-size:1.6rem;line-height:1;flex:none}
+.li dl{margin:0;display:flex;flex-direction:column;gap:2px}
+.li dt{font-size:.88rem;color:var(--muted)}
+.li dd{margin:0 0 6px;font-weight:600;overflow-wrap:anywhere}
+.clue.src{border-left-color:var(--brass)}
+.clue.src b{color:var(--brass)}
+.clue small,.srcl{font-size:.8rem;color:var(--muted);font-weight:400}
+.links{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.88rem}
+a{color:var(--denim);text-underline-offset:2px}
+.vs{display:block;margin-top:6px;font-size:.9rem;font-weight:400;color:var(--ink)}
+.pill{display:inline-block;font:700 .72rem var(--body);letter-spacing:.04em;padding:2px 8px;border-radius:999px;margin-right:4px;border:1.5px solid currentColor}
+.pill.same{color:var(--good);background:var(--goodbg)}
+.pill.lower{color:var(--bad);background:var(--badbg)}
+.pill.higher{color:var(--brass);background:var(--bg)}
+.pill.different{color:var(--denim);background:var(--bg)}
+.disclaimer{font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin:0}
+@media (max-width:520px){.tab{padding:8px 11px;font-size:.88rem}.facts{grid-template-columns:1fr}.score{grid-template-columns:repeat(2,1fr)}.poster{padding:18px}}
+/* Quiz mode: one screen, no page scroll */
+.qsection{display:none;font:600 .85rem var(--body);padding:8px 10px;border-radius:4px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);max-width:100%}
+html.quizmode,html.quizmode body{height:100%;overflow:hidden}
+html.quizmode body{padding-block:10px;margin:0}
+html.quizmode #sound{padding:4px 10px;font-size:.78rem}
+html.quizmode .wrap{height:100%;gap:10px}
+html.quizmode .tag,html.quizmode .chips,html.quizmode .disclaimer{display:none}
+html.quizmode h1{font-size:1.5rem}
+html.quizmode .toprow{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:0}
+html.quizmode .qsection{display:block}
+html.quizmode .tab{padding:7px 12px;font-size:.9rem}
+#quiz-view:not([hidden]){display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
+#quiz-view .score{grid-template-columns:repeat(4,1fr);gap:6px}
+#quiz-view .stat{padding:4px 2px}
+#quiz-view .stat b{font-size:1.15rem}
+#quiz-view .stat small{font-size:.6rem;letter-spacing:.04em}
+#quiz-view .poster{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;margin:0 6px 6px 0;padding:16px;gap:10px}
+#quiz-view .qhead .icon{width:56px;height:56px;font-size:2.1rem}
+#quiz-view .qtext{font-size:1.05rem}
+#quiz-view .opt{padding:9px 12px}
+#quiz-view .controls.stick{position:sticky;bottom:-16px;background:var(--panel);padding-block:8px;margin-bottom:-8px}
+header{position:relative}
+@media (prefers-reduced-motion:no-preference){.poster.enter{animation:drop .25s ease-out}@keyframes drop{from{transform:translateY(6px)}to{transform:none}}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Lab <span>Rodeo</span></h1>
+    <div class="toprow"><p class="tag">Wrangle your blood work, urine tests, vitamins, hormones and supplements before they wrangle you, partner.</p><button class="helper" id="sound" aria-pressed="true">🔊 Sound on</button></div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-cards" role="tab" aria-selected="true">🃏 Cards</button>
+    <button class="tab" id="tab-quiz" role="tab" aria-selected="false">🎯 Quiz</button>
+    <button class="tab" id="tab-list" role="tab" aria-selected="false">📋 Answers</button>
+    <select class="qsection" id="qsection" aria-label="Quiz section"></select>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <section id="cards-view"></section>
+  <section id="quiz-view" hidden></section>
+  <section id="list-view" hidden></section>
+
+  <details class="history">
+    <summary>Version history</summary>
+    <ol reversed>
+      <li><b>v14 · Oct 29, 2026</b> · New cards: chloride, CO2 (bicarbonate), total protein, globulin & A/G ratio, alkaline phosphatase (79 cards).</li>
+      <li><b>v13 · Oct 29, 2026</b> · New card: BUN/creatinine ratio (74 cards).</li>
+      <li><b>v12 · Oct 29, 2026</b> · European numbers converted to US units with a color-coded comparison (green = same), plus a “🇺🇸 vs 🇪🇺” sort in the Answers list.</li>
+      <li><b>v11 · Oct 29, 2026</b> · Sources for every marker, European units and limits (EFSA, ESC, KDIGO, WHO, EAU) with links, plus “Learn more” website and YouTube links.</li>
+      <li><b>v10 · Oct 29, 2026</b> · New “Answer list” tab: every question with its answer, sorted A–Z, by section or by body part (liver, kidneys, heart…), with search.</li>
+      <li><b>v9 · Oct 29, 2026</b> · Swipe left/right on flash cards and quiz (swipe right in the quiz looks back at answered questions), plus haptic taps.</li>
+      <li><b>v8 · Oct 29, 2026</b> · Hands-free auto-play for the quiz: ticking countdown, wrong answers crossed out one by one, then the right answer with its explanation.</li>
+      <li><b>v7 · Oct 29, 2026</b> · Hands-free auto-play for flash cards: question for 5 seconds, then the answer, then the next card. Screen stays awake while it runs.</li>
+      <li><b>v6 · Oct 29, 2026</b> · Abbreviations spelled out on every card and quiz question, plus “Word roots” explaining where each name comes from. This version history.</li>
+      <li><b>v5 · Oct 29, 2026</b> · Quiz fits one phone screen with no page scrolling; compact score row and section picker.</li>
+      <li><b>v4 · Oct 29, 2026</b> · Fun memory icon on every card; sideways swiping locked.</li>
+      <li><b>v3 · Oct 29, 2026</b> · Banjo and “wah-wah” sounds for answers, “Sing it” button for memory tricks, sound on/off.</li>
+      <li><b>v2 · Oct 29, 2026</b> · 27 new cards (73 total), memory tricks, “What is it?” help in the quiz.</li>
+      <li><b>v1 · Oct 29, 2026</b> · First ride: 46 cards, flash cards and quiz with score and repeat of missed questions.</li>
+    </ol>
+  </details>
+  <p class="disclaimer">Not medical advice, cowpoke. Ranges are typical adult values and differ by lab, age, sex and method, so always read your own report's reference range. Talk to a real doc before changing meds or starting supplements. Main sources: MedlinePlus and the NIH Office of Dietary Supplements (US), EFSA, ESC/EAS, KDIGO, WHO and EAU (Europe). European values are SI-unit conversions or the cited body's limits. YouTube links open a search, not a vetted video.</p>
+</div>
+
+<script>
+const SECTIONS = ["Blood","Urine","Vitamins & minerals","Hormones","Supplements"];
+
+const CARDS = [
+// ---------- BLOOD ----------
+{s:"Blood", n:"Fasting glucose", hint:"The sugar sloshin' in your veins after a night without grub.",
+ what:"Blood sugar measured after 8+ hours without food. It shows how well insulin is herding sugar into your cells.",
+ range:"70–99 mg/dL normal · 100–125 prediabetes · 126+ (twice) diabetes",
+ hi:"Diabetes or prediabetes. Over years, high sugar damages nerves, kidneys, eyes and blood vessels.",
+ lo:"Below 70 brings shakes, sweats, confusion. Usually from diabetes meds or skipping meals.",
+ fix:"Fewer sugary drinks and refined carbs, a 10–15 minute walk after meals, losing extra weight, better sleep. Meds like metformin if your doc says so.",
+ quip:"Sugar in the blood is like a mule in the saloon. A little's fine, a lot breaks the furniture.",
+ q:"What fasting glucose number puts you in the prediabetes corral?", a:"100–125 mg/dL", w:["70–99 mg/dL","40–60 mg/dL","200–250 mg/dL"]},
+{s:"Blood", n:"HbA1c", hint:"The three-month trail report on your sugar.",
+ what:"The percent of hemoglobin with sugar stuck to it. Red blood cells live about 3 months, so it shows your average sugar over that stretch.",
+ range:"Below 5.7% normal · 5.7–6.4% prediabetes · 6.5%+ diabetes",
+ hi:"Long-run high sugar and higher risk of diabetes complications.",
+ lo:"Rarely a worry. Can read falsely low with anemia or recent blood loss.",
+ fix:"Same as glucose: move after meals, trim refined carbs, lose weight, sleep. It takes about 3 months to see the full change.",
+ quip:"One bad dessert won't ruin it. This varmint remembers the whole season, not one Saturday.",
+ q:"Why does HbA1c reflect about 3 months of blood sugar?", a:"Red blood cells live about 3 months", w:["The liver stores sugar for 3 months","It's measured in urine collected for 3 months","Insulin is made every 3 months"]},
+{s:"Blood", n:"LDL cholesterol", hint:"The outlaw that sneaks into artery walls.",
+ what:"The particles that carry cholesterol out to the body. Too much of it builds plaque in arteries.",
+ range:"Under 100 mg/dL optimal · 160+ high (lower targets if you've got heart disease)",
+ hi:"Plaque buildup, heart attack and stroke risk.",
+ lo:"Very low LDL is generally fine and is the goal in heart patients.",
+ fix:"Less saturated fat (fatty red meat, butter) and no trans fat, more soluble fiber (oats, beans, psyllium), exercise. Statins or ezetimibe when diet isn't enough. Genes matter a lot here.",
+ quip:"LDL is the bandit who leaves his saddlebags in your arteries. Run him out of town.",
+ q:"Which food swap helps lower LDL the most directly?", a:"More soluble fiber like oats and beans", w:["More butter on the biscuits","Extra sugar in the coffee","Skipping water"]},
+{s:"Blood", n:"HDL cholesterol", hint:"The deputy that hauls cholesterol back to the liver.",
+ what:"Particles that carry extra cholesterol back to the liver for disposal.",
+ range:"40+ mg/dL men · 50+ mg/dL women (60+ is considered protective)",
+ hi:"Usually good. Extremely high levels don't seem to add extra protection.",
+ lo:"Linked to higher heart risk, often alongside high triglycerides and belly fat.",
+ fix:"Regular exercise, quitting smoking, losing weight, cutting refined carbs. Raising HDL with pills hasn't been shown to help.",
+ quip:"HDL's the good deputy. You can't buy a better one, you gotta earn him with sweat.",
+ q:"What's the best-proven way to raise HDL?", a:"Regular exercise and quitting smoking", w:["Eating more donuts","A special HDL pill","Sleeping less"]},
+{s:"Blood", n:"Triglycerides", hint:"Fat floatin' in the blood, fed by sugar and booze.",
+ what:"The main type of fat in your blood. Extra calories, especially sugar and alcohol, get turned into triglycerides.",
+ range:"Under 150 mg/dL normal · 200+ high · 500+ very high",
+ hi:"Heart disease risk. At 500+ the risk of pancreatitis climbs.",
+ lo:"Not usually a problem.",
+ fix:"Cut sugar, sweet drinks, refined carbs and alcohol. Exercise and weight loss. Omega-3 fish oil at prescription doses lowers them too.",
+ quip:"Triglycerides go up faster than a tumbleweed in a twister when you drink sweet tea and whiskey.",
+ q:"Which habit raises triglycerides the fastest?", a:"Sugary drinks and alcohol", w:["Eating leafy greens","Walking daily","Drinking water"]},
+{s:"Blood", n:"Hemoglobin", hint:"The oxygen wagon in your red blood cells.",
+ what:"The iron-containing protein in red blood cells that carries oxygen.",
+ range:"Men about 13.5–17.5 g/dL · Women about 12.0–15.5 g/dL",
+ hi:"Dehydration, smoking, living at altitude, testosterone therapy, or a bone marrow condition. Thick blood raises clot risk.",
+ lo:"Anemia: tired, short of breath, pale. Often from low iron, B12 or folate, or blood loss.",
+ fix:"For low: find the cause (iron, B12, folate, bleeding) and treat it. For high: hydrate, quit smoking, and have your doc check meds like testosterone.",
+ quip:"Low hemoglobin and you're draggin' like a horse pullin' a piano uphill.",
+ q:"Which is a common cause of high hemoglobin?", a:"Smoking or testosterone therapy", w:["Eating too little iron","Heavy menstrual bleeding","Low vitamin B12"]},
+{s:"Blood", n:"White blood cells (WBC)", hint:"Your posse of germ fighters.",
+ what:"Immune cells that fight infection. The count tells if your posse is riled up or short-handed.",
+ range:"About 4,500–11,000 cells/µL",
+ hi:"Infection, inflammation, stress, smoking, steroid meds. Very high counts need a closer look.",
+ lo:"Viral infections, some meds, autoimmune or bone marrow problems. You catch bugs easier.",
+ fix:"Usually treat the cause. Sleep, not smoking and good nutrition keep the posse healthy.",
+ quip:"High WBC means the posse's been called out. Somebody's rustlin' cattle somewhere.",
+ q:"A high white blood cell count most often means…", a:"Your body is fighting an infection or inflammation", w:["You drank too much water","Your thyroid is slow","You ate too much salt"]},
+{s:"Blood", n:"Platelets", hint:"The little patch-up crew for leaks.",
+ what:"Cell fragments that plug holes in blood vessels and start clotting.",
+ range:"About 150,000–450,000 /µL",
+ hi:"Inflammation, iron deficiency, after surgery, or a marrow disorder. Can raise clot risk.",
+ lo:"Easy bruising and bleeding. Causes include viruses, meds, heavy alcohol, liver or marrow disease.",
+ fix:"Treat the cause. Heavy drinking lowers platelets, so easing off helps.",
+ quip:"Platelets are the fence menders of the ranch. Too few and the cattle leak out.",
+ q:"What's the main job of platelets?", a:"Plugging leaks and starting blood clots", w:["Carrying oxygen","Fighting viruses","Storing iron"]},
+{s:"Blood", n:"Creatinine & eGFR", hint:"How well your kidney filters are keepin' the water clean.",
+ what:"Creatinine is waste from muscle. Kidneys filter it out. eGFR is a filtering score calculated from it.",
+ range:"Creatinine about 0.7–1.3 mg/dL men, 0.6–1.1 women · eGFR 90+ normal, under 60 for 3+ months = kidney disease",
+ hi:"High creatinine / low eGFR: kidney trouble, dehydration, some meds. Big muscles or creatine supplements can bump creatinine without real kidney damage.",
+ lo:"Low creatinine usually just means less muscle mass.",
+ fix:"Control blood pressure and blood sugar, stay hydrated, go easy on NSAID painkillers like ibuprofen. Tell your doc if you take creatine.",
+ quip:"Your kidneys filter 180 liters of blood a day. Treat 'em better than a dusty canteen.",
+ q:"Which can raise creatinine without actual kidney damage?", a:"Creatine supplements or lots of muscle", w:["Drinking more water","Eating salad","Low blood sugar"]},
+{s:"Blood", n:"ALT (liver enzyme)", hint:"The alarm bell when liver cells take a beatin'.",
+ what:"An enzyme inside liver cells. It leaks into blood when the liver is irritated or damaged.",
+ range:"Roughly 7–55 U/L (many labs flag above about 40)",
+ hi:"Fatty liver (the most common cause), alcohol, hepatitis, some meds and supplements, very hard workouts.",
+ lo:"Not a concern.",
+ fix:"Lose weight (even 5–10% helps fatty liver), cut alcohol and sugary drinks, exercise, review meds and herbal supplements with your doc.",
+ quip:"A high ALT is your liver hollerin' 'I been workin' overtime at the saloon!'",
+ q:"What's the most common cause of mildly high ALT today?", a:"Fatty liver from extra weight and sugar", w:["Drinking too much water","Low vitamin C","Too much sleep"]},
+{s:"Blood", n:"Sodium", hint:"The salt balance that keeps your brain in the saddle.",
+ what:"The main salt in blood. It controls water balance and nerve signals.",
+ range:"135–145 mEq/L",
+ hi:"Usually dehydration. Thirst, confusion.",
+ lo:"Drinking huge amounts of water, diuretics, some antidepressants, heart or liver failure. Headache, nausea, confusion, seizures if severe.",
+ fix:"Match water to your needs. Endurance riders shouldn't chug plain water for hours without salt. Review meds with your doc.",
+ quip:"Even a camel knows not to drink the whole river at once.",
+ q:"Drinking way too much plain water during a long race can cause…", a:"Low sodium (hyponatremia)", w:["High sodium","High cholesterol","High platelets"]},
+{s:"Blood", n:"Potassium", hint:"The heartbeat's timekeeper.",
+ what:"A mineral that keeps muscles and the heart's electrical rhythm working.",
+ range:"3.5–5.0 mEq/L",
+ hi:"Kidney disease, some blood pressure meds (ACE inhibitors, spironolactone), or a broken-up blood sample. Dangerous heart rhythms.",
+ lo:"Diuretics, vomiting, diarrhea. Cramps, weakness, palpitations.",
+ fix:"Low: potassium-rich foods like beans, potatoes, bananas, spinach. High: your doc may adjust meds or diet. Don't take potassium pills on your own.",
+ quip:"Potassium's the fiddler keepin' your heart's square dance on beat.",
+ q:"Why is potassium so important?", a:"It keeps the heart's rhythm steady", w:["It colors your hair","It makes bones hard","It digests fat"]},
+{s:"Blood", n:"hs-CRP", hint:"The smoke signal for inflammation.",
+ what:"A protein the liver makes when there's inflammation anywhere in the body. The high-sensitivity version is used for heart risk.",
+ range:"Under 1 mg/L low risk · 1–3 average · over 3 higher heart risk (over 10 usually means acute illness)",
+ hi:"Infection, injury, chronic inflammation, obesity, smoking. Associated with heart disease risk.",
+ lo:"Good.",
+ fix:"Lose weight, exercise, quit smoking, sleep well, eat more plants and fish. Retest when you're not sick.",
+ quip:"Where there's smoke there's fire, and CRP is the smoke signal over the ridge.",
+ q:"Why retest hs-CRP if it's above 10?", a:"A cold or injury can spike it temporarily", w:["It's always wrong","It only works in children","It measures vitamin D"]},
+{s:"Blood", n:"Ferritin", hint:"Your iron stockpile in the barn.",
+ what:"A protein that stores iron. Blood levels reflect how much iron you've got stashed.",
+ range:"About 24–336 ng/mL men · 11–307 ng/mL women",
+ hi:"Inflammation (it rises with illness), liver disease, or iron overload (hemochromatosis).",
+ lo:"Iron deficiency, even before anemia shows up. Tired, cold, hair shedding, restless legs.",
+ fix:"Low: red meat, beans, lentils, spinach, with vitamin C to boost absorption. Iron pills only if confirmed low. High: find the cause; for overload, blood donation or phlebotomy.",
+ quip:"Low ferritin means the barn's empty even if the horse still looks fine.",
+ q:"What helps your body absorb plant iron?", a:"Eating it with vitamin C", w:["Drinking coffee with it","Taking calcium with it","Eating it with tea"]},
+{s:"Blood", n:"Uric acid", hint:"The crystal bandit behind gout.",
+ what:"Waste from breaking down purines found in meat, seafood, beer and the body's own cells.",
+ range:"About 3.4–7.0 mg/dL men · 2.4–6.0 mg/dL women",
+ hi:"Gout (crystals in joints, often the big toe) and kidney stones.",
+ lo:"Rarely matters.",
+ fix:"Less beer and liquor, red and organ meats, shellfish and sugary sodas (fructose). Hydrate, lose weight. Allopurinol for recurring gout.",
+ quip:"Gout's like steppin' on a cactus with your big toe, all night long.",
+ q:"Which drink is most tied to high uric acid and gout?", a:"Beer", w:["Water","Milk","Plain coffee"]},
+{s:"Blood", n:"PSA (men)", hint:"The prostate's gossip column.",
+ what:"Prostate-specific antigen, a protein made by the prostate. Used to screen for prostate problems.",
+ range:"Traditionally under 4.0 ng/mL, but normal rises with age",
+ hi:"Enlarged prostate, inflammation or infection, recent ejaculation or long bike rides, or prostate cancer. Needs follow-up, not panic.",
+ lo:"Fine. Some hair-loss meds (finasteride) cut PSA about in half.",
+ fix:"Avoid sex and long cycling for about 2 days before the test. Discuss screening pros and cons with your doc.",
+ quip:"A long ride in the saddle can rile up your PSA. The horse ain't to blame for everything.",
+ q:"What can temporarily raise PSA before a test?", a:"Long bike rides or recent ejaculation", w:["Drinking water","Eating broccoli","Sleeping 8 hours"]},
+
+// ---------- URINE ----------
+{s:"Urine", n:"Urine albumin (ACR)", hint:"Protein leakin' through the kidney fence.",
+ what:"Albumin-to-creatinine ratio. Healthy kidneys keep protein in the blood. Leaks are an early sign of kidney damage.",
+ range:"Under 30 mg/g normal · 30–300 moderately raised · over 300 severely raised",
+ hi:"Kidney damage, most often from diabetes or high blood pressure. Also a heart risk sign. Hard exercise or fever can bump it briefly.",
+ lo:"That's the goal.",
+ fix:"Control blood sugar and blood pressure, cut salt, quit smoking. Meds like ACE inhibitors, ARBs or SGLT2 inhibitors protect the kidneys.",
+ quip:"Protein in your pee is like cattle slippin' through a broken fence. Fix the fence early.",
+ q:"The two biggest causes of protein in urine are…", a:"Diabetes and high blood pressure", w:["Too much water and sleep","Low vitamin C and sunburn","Coffee and tea"]},
+{s:"Urine", n:"Urine glucose", hint:"Sugar spillin' over the dam.",
+ what:"Normally there's none. Kidneys only spill sugar when blood sugar goes above about 180 mg/dL.",
+ range:"Negative",
+ hi:"High blood sugar (often diabetes). Also expected on SGLT2 diabetes meds like empagliflozin, which work by peeing sugar out.",
+ lo:"Negative is normal.",
+ fix:"Get blood glucose and HbA1c checked. Same sugar-taming habits as above.",
+ quip:"Back in the day, docs tasted urine to find diabetes. Be glad for test strips, partner.",
+ q:"About what blood sugar level makes glucose spill into urine?", a:"About 180 mg/dL", w:["About 70 mg/dL","About 100 mg/dL","About 20 mg/dL"]},
+{s:"Urine", n:"Ketones", hint:"Fat-burnin' smoke in the pee.",
+ what:"Byproducts of burning fat for fuel when carbs or insulin are low.",
+ range:"Negative",
+ hi:"Fasting, keto diets, vomiting, intense exercise. With type 1 diabetes and high sugar, it can signal diabetic ketoacidosis, an emergency.",
+ lo:"Negative is normal.",
+ fix:"Harmless on a planned keto diet or fast. If you have diabetes and high sugar with ketones, nausea or heavy breathing, get help fast.",
+ quip:"Ketones on a keto diet? Fine as frog hair. Ketones with sky-high sugar? Ride to the doc now.",
+ q:"When are urine ketones an emergency sign?", a:"With type 1 diabetes and very high blood sugar", w:["During a planned keto diet","After a long fast in a healthy person","After drinking water"]},
+{s:"Urine", n:"Nitrites & leukocyte esterase", hint:"The tracks bladder bandits leave behind.",
+ what:"Nitrite appears when certain bacteria convert nitrate. Leukocyte esterase comes from white blood cells. Together they hint at a urinary tract infection.",
+ range:"Both negative",
+ hi:"Positive suggests a UTI, especially with burning, urgency or frequent peeing.",
+ lo:"Negative is normal, though a negative nitrite doesn't fully rule out infection.",
+ fix:"See a doc for antibiotics if you have symptoms. Hydrate and don't hold your pee for hours.",
+ quip:"Burns like a branding iron when you pee? The bandits have made camp in your bladder.",
+ q:"Positive nitrites and leukocyte esterase most likely mean…", a:"A urinary tract infection", w:["Dehydration","Low vitamin D","High cholesterol"]},
+{s:"Urine", n:"Blood in urine", hint:"Red flags in the creek.",
+ what:"Detects red blood cells or hemoglobin in urine, sometimes seen only under a microscope.",
+ range:"Negative",
+ hi:"UTI, kidney stones, hard exercise, period contamination, enlarged prostate, or sometimes a tumor. Unexplained blood always needs follow-up.",
+ lo:"Negative is normal.",
+ fix:"Retest without heavy exercise or menstruation. If it stays positive, your doc will look for the cause. Beets can turn urine red without blood.",
+ quip:"Ate a pile of beets? Your pee might look like a crime scene. Real blood still needs checkin'.",
+ q:"Which can turn urine red without any blood in it?", a:"Eating beets", w:["Drinking milk","Eating rice","Taking vitamin D"]},
+{s:"Urine", n:"Specific gravity", hint:"How watered-down your whiskey is.",
+ what:"How concentrated your urine is compared with water.",
+ range:"About 1.005–1.030",
+ hi:"Concentrated urine, usually dehydration. Also glucose or contrast dye.",
+ lo:"Very dilute: lots of fluids, diuretics, or rarely a kidney or hormone (ADH) issue.",
+ fix:"Drink enough that urine is pale yellow. Hot days and hard work need more.",
+ quip:"Pee darker than black coffee? Your canteen's been empty too long.",
+ q:"A high urine specific gravity usually means…", a:"You're dehydrated", w:["You drank too much water","You have low cholesterol","You have a cold"]},
+{s:"Urine", n:"Urine pH", hint:"How sour or soapy your pee runs.",
+ what:"Acidity of urine. Diet changes it a lot.",
+ range:"About 4.5–8.0 (usually around 6)",
+ hi:"Alkaline: plant-heavy diets, some UTIs, certain meds. Some stone types form more easily.",
+ lo:"Acidic: high-meat diets, ketosis, dehydration. Uric acid stones like acidic urine.",
+ fix:"More fruits and vegetables raise pH; more meat lowers it. Hydration helps prevent stones either way.",
+ quip:"Steak every night makes your pee as sour as a cowpoke with no coffee.",
+ q:"A high-meat diet tends to make urine…", a:"More acidic (lower pH)", w:["More alkaline (higher pH)","Glow in the dark","Full of protein always"]},
+
+// ---------- VITAMINS & MINERALS ----------
+{s:"Vitamins & minerals", n:"Vitamin D (25-OH)", hint:"The sunshine vitamin, bottled.",
+ what:"Made in skin from sunlight and found in fatty fish. Helps absorb calcium for bones, and supports muscles and immunity.",
+ range:"Under 20 ng/mL deficient · 20–29 borderline · 30–100 sufficient (labs vary) · over 150 toxic",
+ hi:"Almost always from megadose pills. High calcium, nausea, kidney stones.",
+ lo:"Weak bones, muscle aches, falls. Common in winter, darker skin, indoor folks and older adults.",
+ fix:"Sensible sun, fatty fish, fortified milk. D3 pills, often 1,000–2,000 IU a day. Upper limit is 4,000 IU unless your doc says more.",
+ quip:"Cowboys got plenty of sun. Office cowboys? Not so much.",
+ q:"What's the usual upper daily limit for vitamin D without doctor supervision?", a:"4,000 IU", w:["400,000 IU","40 IU","100,000 IU"]},
+{s:"Vitamins & minerals", n:"Vitamin B12", hint:"Fuel for nerves and red blood cells.",
+ what:"Found only in animal foods (and fortified foods). Needed for nerves, DNA and red blood cells.",
+ range:"About 200–900 pg/mL (200–300 is a gray zone; a test called MMA helps)",
+ hi:"Usually just from supplements and harmless. Unexplained high levels can point to liver or blood disorders.",
+ lo:"Tiredness, tingling feet and hands, memory problems, large-cell anemia. Risk: vegans, older adults, metformin and acid-reducer users.",
+ fix:"Meat, fish, eggs, dairy, or B12 supplements. Injections if absorption is poor.",
+ quip:"Vegan cowboy? Bless your heart, but take your B12.",
+ q:"Which diabetes medicine can lower B12 over time?", a:"Metformin", w:["Insulin","Aspirin","Vitamin D"]},
+{s:"Vitamins & minerals", n:"Folate (B9)", hint:"The leafy-green builder vitamin.",
+ what:"A B vitamin for making DNA and red blood cells. Critical in early pregnancy to prevent spine defects.",
+ range:"Serum folate above about 3 ng/mL is adequate",
+ hi:"Rarely harmful from food. High-dose folic acid can hide B12 deficiency.",
+ lo:"Anemia, fatigue, mouth sores, birth defect risk in pregnancy. Alcohol lowers it.",
+ fix:"Leafy greens, beans, lentils, fortified grains. 400 mcg folic acid daily if you could become pregnant.",
+ quip:"Folate comes from foliage. Eat your greens like a horse eats hay.",
+ q:"Why is folate especially important before and during pregnancy?", a:"It helps prevent spine and brain birth defects", w:["It makes the baby taller","It prevents morning sickness","It replaces iron"]},
+{s:"Vitamins & minerals", n:"Vitamin C", hint:"What sailors forgot, and their gums paid for.",
+ what:"An antioxidant needed for collagen, wound healing and iron absorption. Not usually tested.",
+ range:"Daily need: 90 mg men, 75 mg women (+35 mg for smokers) · upper limit 2,000 mg",
+ hi:"Over 2,000 mg a day: stomach upset, diarrhea, kidney stone risk.",
+ lo:"Scurvy: bleeding gums, bruising, slow healing. Rare but still seen with very poor diets.",
+ fix:"One orange, a bell pepper or some strawberries covers your day. Megadoses don't reliably prevent colds.",
+ quip:"One bell pepper beats a whole sack of fizzy tablets.",
+ q:"Deficiency of vitamin C causes…", a:"Scurvy", w:["Rickets","Gout","Night blindness"]},
+{s:"Vitamins & minerals", n:"Vitamin A", hint:"The night-vision vitamin. Too much bites back.",
+ what:"Needed for vision, immunity and skin. Comes ready-made from liver, eggs and dairy, or as beta-carotene from orange and green veggies.",
+ range:"Daily need: 900 mcg RAE men, 700 mcg women · upper limit 3,000 mcg (preformed)",
+ hi:"Too much preformed A from pills or lots of liver: liver damage, headaches, bone loss, birth defects.",
+ lo:"Night blindness, dry eyes, more infections.",
+ fix:"Carrots, sweet potatoes, spinach. Beta-carotene from food doesn't build to toxic levels. Avoid high-dose A pills in pregnancy.",
+ quip:"Eat enough carrots and you'll spot a coyote at midnight. Eat polar bear liver and you'll regret it.",
+ q:"Low vitamin A first shows up as…", a:"Night blindness", w:["Gout","Bleeding gums","High blood sugar"]},
+{s:"Vitamins & minerals", n:"Vitamin K", hint:"The clotting vitamin that tangles with warfarin.",
+ what:"Needed to make clotting factors. Found in leafy greens.",
+ range:"Not usually measured; clotting tests (INR) reflect it",
+ hi:"From food, not toxic. But a sudden jump in greens weakens warfarin.",
+ lo:"Easy bleeding. Newborns get a shot because they're born low.",
+ fix:"On warfarin? Keep greens steady from week to week rather than avoiding them. Newer blood thinners aren't affected the same way.",
+ quip:"On warfarin, eat the same pile of spinach every week. Don't go from zero to a whole wagon.",
+ q:"If you take warfarin, how should you handle vitamin K foods?", a:"Keep your intake consistent week to week", w:["Avoid all vegetables forever","Eat as much spinach as possible","Double up on weekends"]},
+{s:"Vitamins & minerals", n:"Magnesium", hint:"The relaxer mineral for muscles and nerves.",
+ what:"Used in hundreds of body reactions, including muscle, nerve, heart rhythm and blood sugar control.",
+ range:"Serum about 1.7–2.2 mg/dL (blood levels don't fully show body stores)",
+ hi:"Rare, mostly kidney failure or too many magnesium laxatives or antacids.",
+ lo:"Cramps, twitching, irregular heartbeat. Causes: alcohol, diuretics, long-term acid reducers (PPIs), diarrhea.",
+ fix:"Nuts, seeds, beans, whole grains, dark chocolate, greens. Supplements 200–400 mg; citrate and oxide forms loosen the bowels.",
+ quip:"Too much magnesium oxide and you'll be runnin' to the outhouse like the cavalry's after you.",
+ q:"Which common heartburn medicine can lower magnesium long-term?", a:"Proton pump inhibitors (like omeprazole)", w:["Vitamin C","Ibuprofen once a month","Melatonin"]},
+
+// ---------- HORMONES ----------
+{s:"Hormones", n:"TSH", hint:"The brain's whip on the thyroid horse.",
+ what:"Thyroid-stimulating hormone from the pituitary. It tells the thyroid how hard to work. It moves opposite to thyroid function.",
+ range:"About 0.4–4.0 mIU/L (labs vary)",
+ hi:"Underactive thyroid (hypothyroidism): tired, cold, weight gain, constipation, dry skin.",
+ lo:"Overactive thyroid (hyperthyroidism): racing heart, weight loss, anxiety, heat intolerance. Or too much thyroid medication.",
+ fix:"Mostly medication: levothyroxine for low thyroid. Take it on an empty stomach, apart from calcium and iron. Biotin supplements can scramble thyroid test results.",
+ quip:"High TSH means the boss is hollerin' louder 'cause the thyroid horse is lazy.",
+ q:"A HIGH TSH usually means the thyroid is…", a:"Underactive", w:["Overactive","Perfectly normal","Missing vitamin C"]},
+{s:"Hormones", n:"Free T4", hint:"The actual thyroid hormone on the trail.",
+ what:"The main hormone the thyroid makes, the unbound form ready to act on cells.",
+ range:"About 0.8–1.8 ng/dL",
+ hi:"Overactive thyroid or too high a thyroid pill dose.",
+ lo:"Underactive thyroid.",
+ fix:"Treated together with TSH by adjusting thyroid medication. Enough iodine in the diet (iodized salt) matters too.",
+ quip:"TSH is the trail boss, T4 is the herd. Check both to know if the drive's goin' right.",
+ q:"Which everyday food source gives the iodine your thyroid needs?", a:"Iodized salt", w:["Sugar","Olive oil","Black coffee"]},
+{s:"Hormones", n:"Testosterone", hint:"The bull-strength hormone.",
+ what:"The main male sex hormone (women make smaller amounts). Drives muscle, libido, energy and red blood cell production.",
+ range:"Men about 300–1,000 ng/dL (test in the morning) · Women about 15–70 ng/dL",
+ hi:"In men, usually from TRT or steroids: thick blood, acne, shrunk testicles, low sperm. In women, PCOS is a common cause.",
+ lo:"Low libido, fatigue, muscle loss, low mood, weaker bones. Obesity, poor sleep and opioids are common causes.",
+ fix:"Sleep 7–9 hours, lose belly fat, lift weights, limit alcohol. Testosterone therapy only after two low morning tests and a doctor's workup.",
+ quip:"Sleepin' four hours and drinkin' six beers ain't how you grow bull horns, son.",
+ q:"When should testosterone be tested?", a:"In the morning, when it's highest", w:["Late at night","Right after a big dinner","Any time, it never changes"]},
+{s:"Hormones", n:"Estradiol", hint:"The main estrogen, ridin' the monthly cycle.",
+ what:"The main form of estrogen. Controls the menstrual cycle and protects bones and blood vessels. Men need a little too.",
+ range:"Varies widely with the cycle and drops after menopause · men about 10–40 pg/mL",
+ hi:"Women: certain cycle phases, pregnancy, some tumors. Men: extra body fat or high-dose testosterone converting to estrogen.",
+ lo:"Menopause, very low body weight, heavy training. Hot flashes, bone loss.",
+ fix:"Healthy weight, weight-bearing exercise for bones. Hormone therapy is a personal decision with your doctor.",
+ quip:"Estradiol rides a different trail every week of the month, so one number don't tell the whole story.",
+ q:"In men, extra body fat tends to…", a:"Convert more testosterone into estrogen", w:["Stop all estrogen production","Raise vitamin C","Lower blood sugar"]},
+{s:"Hormones", n:"Cortisol", hint:"The stampede alarm hormone.",
+ what:"The stress hormone from the adrenal glands. Peaks in the morning to wake you, dips at night.",
+ range:"Morning about 5–25 mcg/dL",
+ hi:"Chronically high: Cushing's syndrome or steroid meds. Belly fat, high blood sugar, high blood pressure, thin skin.",
+ lo:"Addison's disease or stopping steroids suddenly. Weakness, low blood pressure, salt cravings.",
+ fix:"Regular sleep, exercise, stress management. Never stop prednisone suddenly after long use.",
+ quip:"Cortisol's what gets you up at dawn to feed the horses. Too much all day and you'll be wound tighter than a lasso.",
+ q:"When is cortisol naturally highest?", a:"In the early morning", w:["At midnight","After lunch","It's constant all day"]},
+{s:"Hormones", n:"Fasting insulin", hint:"The key that opens cells for sugar.",
+ what:"Hormone from the pancreas that moves sugar into cells. High fasting insulin can show insulin resistance years before sugar rises.",
+ range:"About 2–20 µIU/mL (no single standard; labs vary)",
+ hi:"Insulin resistance, often with belly fat, high triglycerides and fatty liver.",
+ lo:"Normal when fasting. Very low with high sugar suggests type 1 diabetes.",
+ fix:"Exercise (muscle soaks up sugar), weight loss, fewer refined carbs, more fiber, better sleep.",
+ quip:"When the lock gets rusty, the pancreas just keeps makin' more keys.",
+ q:"What does high fasting insulin with normal sugar often mean?", a:"Early insulin resistance", w:["Perfect health","Type 1 diabetes","Low thyroid"]},
+{s:"Hormones", n:"Prolactin", hint:"The milk hormone that can meddle.",
+ what:"A pituitary hormone that triggers breast milk. High levels can shut down sex hormones.",
+ range:"Roughly under 25 ng/mL women · under 15–20 ng/mL men",
+ hi:"Pregnancy, nursing, some meds (antipsychotics), stress, low thyroid, or a small benign pituitary tumor. Low libido, irregular periods, milky discharge.",
+ lo:"Rarely an issue.",
+ fix:"Retest calmly in the morning. Your doc may review meds or order an MRI. Medication shrinks most pituitary tumors.",
+ quip:"Prolactin's handy for calves. When it's high for no reason, find out who's stirrin' the pot.",
+ q:"High prolactin can lower which hormones?", a:"Sex hormones like testosterone and estrogen", w:["Vitamin D and C","Sodium and potassium","Platelets"]},
+
+// ---------- SUPPLEMENTS ----------
+{s:"Supplements", n:"Creatine monohydrate", hint:"Strength fuel for the bronc buster.",
+ what:"Stores quick energy in muscles. One of the best-studied supplements for strength and power training.",
+ range:"Typical dose: 3–5 g per day",
+ hi:"Some water weight. Raises blood creatinine slightly, which can look like kidney trouble on labs.",
+ lo:"Vegetarians tend to have lower stores and may see bigger gains.",
+ fix:"Take daily with water, any time of day. Tell your doc you take it before kidney tests. Talk to them first if you already have kidney disease.",
+ quip:"Creatine won't turn you into a bull, but it might help you lift one more hay bale.",
+ q:"Creatine can make which lab look worse without real harm?", a:"Blood creatinine", w:["Vitamin C","Urine nitrite","TSH"]},
+{s:"Supplements", n:"Fish oil (omega-3)", hint:"Slippery help for triglycerides.",
+ what:"EPA and DHA fats from fish. Lowers triglycerides at higher doses.",
+ range:"Typical dose: 1 g/day general · 2–4 g/day EPA+DHA to lower triglycerides (under a doc)",
+ hi:"High doses slightly raise atrial fibrillation risk and may add to bleeding with blood thinners. Fishy burps.",
+ lo:"Eating fatty fish twice a week covers most people.",
+ fix:"Salmon, sardines, mackerel twice a week. Prescription omega-3 for very high triglycerides.",
+ quip:"Fishy burps on the trail'll make your horse ride upwind.",
+ q:"What lab does high-dose fish oil reliably lower?", a:"Triglycerides", w:["Hemoglobin","TSH","Sodium"]},
+{s:"Supplements", n:"Protein powder (whey)", hint:"Scoop of grub for the muscle wagon.",
+ what:"Concentrated milk protein. Handy for hitting protein targets, not magic.",
+ range:"Muscle gain target: about 1.6 g protein per kg body weight per day, total from all food",
+ hi:"Extra just becomes calories. Fine for healthy kidneys; ask a doc if you have kidney disease.",
+ lo:"Low protein plus aging speeds muscle loss.",
+ fix:"Use it to fill gaps after eggs, meat, beans, dairy. Pick third-party tested brands.",
+ quip:"A scoop of whey don't replace beans and brisket. It's just a sidekick.",
+ q:"About how much daily protein helps maximize muscle gain?", a:"About 1.6 g per kg body weight", w:["About 10 g per kg","About 0.1 g per kg","Unlimited, more is always better"]},
+{s:"Supplements", n:"Melatonin", hint:"The sundown hormone in a bottle.",
+ what:"The body's darkness signal. Helps shift sleep timing more than knock you out.",
+ range:"Typical dose: 0.5–3 mg, 1–2 hours before bed",
+ hi:"Grogginess, vivid dreams, headaches. US products often contain much more or less than the label says.",
+ lo:"Bright screens at night suppress your own melatonin.",
+ fix:"Best for jet lag and night-owl schedules. Dim lights and put the phone down an hour before bed.",
+ quip:"More melatonin ain't better. Even a sleepy dog only needs a small porch.",
+ q:"Melatonin works best for…", a:"Shifting sleep timing, like jet lag", w:["Building muscle","Lowering cholesterol","Curing infections"]},
+{s:"Supplements", n:"Caffeine", hint:"Cowboy coffee, the trail-tested stimulant.",
+ what:"Blocks the brain's sleepiness signal (adenosine). Boosts alertness and endurance.",
+ range:"Up to about 400 mg/day for healthy adults (about 4 cups of brewed coffee) · half-life about 5 hours",
+ hi:"Jitters, poor sleep, fast heart rate, anxiety. Pills and energy drinks make overdoing it easy.",
+ lo:"Withdrawal headaches if you quit cold turkey.",
+ fix:"Stop caffeine 8+ hours before bed. Pregnant folks should stay under about 200 mg.",
+ quip:"Coffee strong enough to float a horseshoe still needs a curfew.",
+ q:"About how long is caffeine's half-life?", a:"About 5 hours", w:["About 5 minutes","About 5 days","About 30 seconds"]},
+{s:"Supplements", n:"Biotin (B7)", hint:"The hair-and-nails vitamin that rigs lab tests.",
+ what:"A B vitamin sold for hair and nails. Real deficiency is rare.",
+ range:"Daily need about 30 mcg · beauty pills often have 5,000–10,000 mcg",
+ hi:"High doses can give falsely high or low results on thyroid, hormone and heart (troponin) tests. The FDA has warned about this.",
+ lo:"Deficiency is rare.",
+ fix:"Tell your doc you take it. Many labs advise stopping a few days before blood tests.",
+ quip:"Biotin's a card cheat at the lab poker table. Fold it before your blood draw.",
+ q:"Why mention biotin before blood tests?", a:"High doses can skew thyroid and heart test results", w:["It makes blood clot faster","It turns urine blue","It lowers cholesterol to zero"]},
+{s:"Supplements", n:"Ashwagandha", hint:"Herbal saddle soap for stress.",
+ what:"An herb from Ayurvedic medicine. Some small studies show modest drops in stress and cortisol.",
+ range:"Studied doses about 250–600 mg/day of root extract",
+ hi:"Rare cases of liver injury. Can affect thyroid levels. Avoid in pregnancy.",
+ lo:"No deficiency exists.",
+ fix:"Try short-term if at all, with doc approval if you have thyroid issues or take sedatives.",
+ quip:"Ashwagandha means 'smell of horse' in Sanskrit. Finally a supplement for us.",
+ q:"Which organ has had rare injury reports with ashwagandha?", a:"Liver", w:["Lungs","Eyes","Ears"]},
+{s:"Supplements", n:"Zinc", hint:"The immune helper that can steal copper.",
+ what:"A mineral for immunity, wound healing, taste and testosterone production.",
+ range:"Daily need: 11 mg men, 8 mg women · upper limit 40 mg",
+ hi:"Long-term above 40 mg can cause copper deficiency, anemia and nerve problems. Nausea on an empty stomach.",
+ lo:"Poor healing, loss of taste, hair loss, frequent infections.",
+ fix:"Oysters, beef, pumpkin seeds, beans. Lozenges early in a cold may shorten it a bit. Don't megadose for months.",
+ quip:"Six oysters and you've got your zinc for a week. Shuck 'em, don't chug pills.",
+ q:"Too much zinc for months can cause a deficiency of…", a:"Copper", w:["Sodium","Vitamin K","Cholesterol"]},
+{s:"Supplements", n:"Psyllium fiber", hint:"The broom for your trail.",
+ what:"Soluble fiber from plantago seeds (the stuff in Metamucil). Forms a gel that traps cholesterol and slows sugar.",
+ range:"Typical dose: 5–10 g per day with plenty of water",
+ hi:"Bloating and gas if you ramp up too fast. Without water it can cause blockage.",
+ lo:"Most folks eat about half the fiber they need.",
+ fix:"Start small, add water, take other meds 2 hours apart. Can lower LDL several percent.",
+ quip:"Keeps things movin' smoother than a cattle drive on flat ground.",
+ q:"What must you take psyllium with?", a:"Plenty of water", w:["A shot of whiskey","Nothing at all","Extra salt"]},
+
+// ---------- MORE BLOOD ----------
+{s:"Blood", n:"AST (liver/muscle enzyme)", hint:"ALT's cousin who also hangs around the muscles.",
+ what:"An enzyme in liver, heart and muscle cells. Read together with ALT to figure out where the damage is.",
+ range:"Roughly 8–48 U/L (labs vary)",
+ hi:"Liver damage, alcohol, heavy workouts or muscle injury. AST about twice ALT points toward alcohol.",
+ lo:"Not a concern.",
+ fix:"Cut alcohol, lose liver fat, and skip hard workouts for 2–3 days before the test so muscles don't muddy the result.",
+ quip:"Bucked off a bronc yesterday? Your AST'll tattle on those bruised muscles.",
+ q:"AST about twice as high as ALT often points to…", a:"Alcohol-related liver damage", w:["Low vitamin D","A urinary infection","Too much fiber"]},
+{s:"Blood", n:"GGT", hint:"The liver enzyme that snitches on drinkin'.",
+ what:"An enzyme in the liver and bile ducts. Very sensitive to alcohol and bile flow problems.",
+ range:"About 8–61 U/L men · lower in women (labs vary)",
+ hi:"Regular alcohol, bile duct blockage, fatty liver, some meds (like seizure drugs). Also linked to heart and diabetes risk.",
+ lo:"Not a concern.",
+ fix:"Cut back on alcohol (it often falls within weeks), lose weight, review meds.",
+ quip:"GGT keeps a tab at the saloon and it remembers every round.",
+ q:"Which habit raises GGT most reliably?", a:"Regular alcohol drinking", w:["Drinking milk","Eating carrots","Stretching"]},
+{s:"Blood", n:"Bilirubin", hint:"The yellow paint from worn-out red cells.",
+ what:"A yellow pigment made when old red blood cells break down. The liver processes it and sends it out in bile.",
+ range:"Total about 0.1–1.2 mg/dL",
+ hi:"Jaundice (yellow skin and eyes) from liver disease, bile duct blockage or fast red cell breakdown. Mild rises are often Gilbert syndrome, a harmless inherited quirk that bumps it during fasting or illness.",
+ lo:"Not a concern.",
+ fix:"Depends on the cause. Gilbert syndrome needs no treatment. Yellow eyes or dark urine need a doctor soon.",
+ quip:"Eyes yeller than a prairie sunflower? Time to see the doc.",
+ q:"A common harmless cause of mildly high bilirubin is…", a:"Gilbert syndrome", w:["Scurvy","Gout","Low sodium"]},
+{s:"Blood", n:"Albumin", hint:"The protein that keeps water in the pipes.",
+ what:"The main protein in blood, made by the liver. It holds fluid inside blood vessels and carries hormones and drugs.",
+ range:"About 3.5–5.0 g/dL",
+ hi:"Usually dehydration.",
+ lo:"Liver disease, protein lost through kidneys, inflammation, or poor nutrition. Leads to swelling in legs and belly.",
+ fix:"Treat the cause. Enough protein in the diet helps if malnutrition is the reason.",
+ quip:"Albumin's the water trough fence. Low albumin and the water spills into your ankles.",
+ q:"Low albumin often causes…", a:"Swelling in the legs and belly", w:["Sunburn","Gout attacks","High blood sugar"]},
+{s:"Blood", n:"Calcium (blood)", hint:"The bone mineral the body guards like gold.",
+ what:"Blood calcium is tightly controlled by parathyroid hormone and vitamin D. Needed for nerves, muscles and heart rhythm.",
+ range:"About 8.5–10.2 mg/dL",
+ hi:"Overactive parathyroid gland, some cancers, too much vitamin D. Kidney stones, bone pain, belly aches, confusion.",
+ lo:"Low vitamin D, low magnesium, low parathyroid hormone, kidney disease. Tingling and cramps.",
+ fix:"Find the cause. Eating calcium won't push blood levels out of range much because hormones control it.",
+ quip:"Your body guards blood calcium tighter than a bank vault in Tombstone.",
+ q:"The most common cause of high blood calcium in outpatients is…", a:"An overactive parathyroid gland", w:["Drinking milk","Low vitamin C","Eating spinach"]},
+{s:"Blood", n:"MCV", hint:"The size of your red blood cell wagons.",
+ what:"Mean corpuscular volume, the average size of red blood cells. It helps sort out the cause of anemia.",
+ range:"About 80–100 fL",
+ hi:"Big cells: low B12 or folate, heavy alcohol, liver disease, some meds.",
+ lo:"Small cells: iron deficiency, or an inherited trait like thalassemia.",
+ fix:"Fix the cause: iron for small cells, B12 or folate for big ones, less alcohol.",
+ quip:"Wagons too small? Short on iron. Wagons too big? Short on B12 or long on whiskey.",
+ q:"Small red blood cells (low MCV) most often mean…", a:"Iron deficiency", w:["B12 deficiency","Too much alcohol","Dehydration"]},
+{s:"Blood", n:"BUN", hint:"Protein waste the kidneys haul away.",
+ what:"Blood urea nitrogen, a waste product from breaking down protein. Read alongside creatinine.",
+ range:"About 7–20 mg/dL",
+ hi:"Dehydration, high-protein diet, kidney trouble, bleeding in the gut, steroids.",
+ lo:"Low protein intake, liver disease, pregnancy.",
+ fix:"Hydrate before the test. Treat kidney or other causes. A big steak the night before can bump it.",
+ quip:"Ate a 32-ounce steak and drank no water? Your BUN's gonna rise like dough.",
+ q:"A common harmless reason for high BUN is…", a:"Dehydration", w:["Too much sleep","Low cholesterol","Eating fruit"]},
+{s:"Blood", n:"ApoB", hint:"A head count of the cholesterol outlaws.",
+ what:"Each artery-clogging particle (LDL, VLDL, Lp(a)) carries exactly one ApoB protein, so ApoB counts how many there are.",
+ range:"Under 90 mg/dL general · under 80 or lower for high-risk folks",
+ hi:"More plaque-forming particles and higher heart risk, even if LDL looks okay.",
+ lo:"Good.",
+ fix:"Same as LDL: less saturated fat, more fiber, exercise, weight loss, statins or other meds if needed.",
+ quip:"LDL tells you how much loot the gang's carryin'. ApoB tells you how many bandits are ridin'.",
+ q:"What does ApoB actually measure?", a:"The number of artery-clogging particles", w:["How much sugar is in red cells","Kidney filtering speed","Vitamin D stores"]},
+{s:"Blood", n:"Lp(a)", hint:"The inherited outlaw you can't run outta town.",
+ what:"Lipoprotein(a), an LDL-like particle with a sticky extra protein. Level is mostly set by genes.",
+ range:"Under 30 mg/dL (or under about 75 nmol/L) is lower risk",
+ hi:"Higher risk of heart attack, stroke and aortic valve narrowing. About 1 in 5 people have high levels.",
+ lo:"Good.",
+ fix:"Diet and exercise barely move it. Test once in your life; if high, control every other risk harder (LDL, blood pressure, smoking). New targeted drugs are being studied.",
+ quip:"Lp(a) is a family heirloom nobody wanted, like Grandpa's ornery mule.",
+ q:"How often do most adults need Lp(a) tested?", a:"Once, since it's mostly genetic", w:["Every week","Every month","Never, it doesn't matter"]},
+{s:"Blood", n:"Homocysteine", hint:"An amino acid that piles up without B vitamins.",
+ what:"An amino acid that B12, folate and B6 help clear. High levels are linked with heart and brain risk.",
+ range:"About 5–15 µmol/L",
+ hi:"Low B12, folate or B6, kidney disease, low thyroid, gene variants like MTHFR.",
+ lo:"Not a concern.",
+ fix:"Eat greens and beans and get enough B12. B vitamins lower the number, though trials didn't show they prevent heart attacks.",
+ quip:"Homocysteine piles up like dirty dishes when the B-vitamin crew don't show up.",
+ q:"Which vitamins help clear homocysteine?", a:"B12, folate and B6", w:["Vitamin C and E","Vitamin A and K","Vitamin D only"]},
+
+{s:"Blood", n:"BUN/creatinine ratio", hint:"Two kidney numbers that tell a better story together.",
+ what:"BUN divided by creatinine. Both are filtered by the kidneys, so comparing them hints at WHY one is off: a problem before, in, or after the kidneys.",
+ range:"About 10:1 to 20:1",
+ hi:"Over 20: usually dehydration or low blood flow to the kidneys, bleeding in the stomach or gut, a high-protein diet, steroids, or heart failure.",
+ lo:"Under 10: liver disease, low protein intake or malnutrition, pregnancy, or severe muscle breakdown.",
+ fix:"Hydrate before the test and don't load up on protein the night before. A high ratio with black stools or vomiting blood needs urgent care. Your doc reads it with both numbers, not alone.",
+ quip:"BUN and creatinine are two ranch hands. When one's workin' twice as hard as the other, somethin's off in the barn.",
+ q:"A BUN/creatinine ratio above 20 most often points to…", a:"Dehydration or low blood flow to the kidneys", w:["Too much vitamin C","An underactive thyroid","Low cholesterol"]},
+
+{s:"Blood", n:"Chloride", hint:"Sodium's faithful sidekick in the salt wagon.",
+ what:"A salt (electrolyte) that works with sodium to balance body water, blood pressure and acid levels.",
+ range:"About 96–106 mEq/L",
+ hi:"Dehydration, severe diarrhea, too much salt-water IV fluid, some kidney problems. Can come with too much acid in the blood.",
+ lo:"Vomiting (stomach acid is full of chloride), diuretics, heart failure, overdrinking water.",
+ fix:"Usually fixes itself when the cause is treated: rehydrate after vomiting or diarrhea, review water pills with your doc.",
+ quip:"Wherever sodium rides, chloride's in the saddle right behind him.",
+ q:"Chloride usually moves in the same direction as…", a:"Sodium", w:["Cholesterol","Platelets","Vitamin D"]},
+{s:"Blood", n:"Carbon dioxide (CO2 / bicarbonate)", hint:"The body's acid sponge.",
+ what:"Mostly bicarbonate, the base that soaks up acid in your blood. Kidneys and lungs keep it in balance.",
+ range:"About 23–29 mEq/L",
+ hi:"Too little acid (alkalosis): vomiting, diuretics, too much cortisol. Also rises to balance long-term lung disease.",
+ lo:"Too much acid (acidosis): kidney disease, diabetic ketoacidosis, severe diarrhea, aspirin overdose, very hard exercise.",
+ fix:"Treat the cause: hydrate, control diabetes, protect the kidneys. Doctors sometimes give bicarbonate in kidney disease.",
+ quip:"Bicarbonate's the bartender who mops up spilled acid before the saloon floor rots.",
+ q:"A low CO2 (bicarbonate) in blood suggests…", a:"Too much acid in the body (acidosis)", w:["Too much oxygen","High cholesterol","Low vitamin C"]},
+{s:"Blood", n:"Total protein", hint:"Every protein ridin' in your blood, counted together.",
+ what:"All the protein in blood: albumin (made by the liver) plus globulins (many made by the immune system).",
+ range:"About 6.0–8.3 g/dL",
+ hi:"Dehydration, long-running infection or inflammation (like hepatitis), or rarely a blood cancer such as multiple myeloma.",
+ lo:"Liver disease, kidneys leaking protein, malnutrition, or poor gut absorption.",
+ fix:"Hydrate and eat enough protein. Unexplained results need a look at albumin and globulin separately.",
+ quip:"Total protein's the head count of the whole herd. The trick is knowin' which cattle are missin'.",
+ q:"Total protein is mainly made of which two groups?", a:"Albumin and globulins", w:["Sugar and fat","Sodium and potassium","Red and white cells"]},
+{s:"Blood", n:"Globulin & A/G ratio", hint:"The immune posse's share of blood protein.",
+ what:"Globulin = total protein minus albumin. It includes antibodies and transport proteins. The A/G ratio compares albumin to globulin.",
+ range:"Globulin about 2.0–3.5 g/dL · A/G ratio about 1.1–2.5",
+ hi:"High globulin (low A/G ratio): chronic infection, autoimmune disease, liver disease, or a blood cancer like multiple myeloma.",
+ lo:"Low globulin (high A/G ratio): weak immune system, some genetic conditions, or protein loss.",
+ fix:"Treat the cause. A persistently high globulin often leads your doc to order a protein electrophoresis test.",
+ quip:"When the globulin posse grows big, somebody in town's been causin' trouble a long while.",
+ q:"Which important immune proteins are globulins?", a:"Antibodies (immunoglobulins)", w:["Insulin","Hemoglobin","Cholesterol"]},
+{s:"Blood", n:"Alkaline phosphatase (ALP)", hint:"The enzyme that works the liver ducts and the bone yard.",
+ what:"An enzyme found mostly in the liver's bile ducts and in bone-building cells. Also made by the placenta in pregnancy.",
+ range:"About 44–147 IU/L in adults (higher in growing kids)",
+ hi:"Bile duct blockage or liver disease, bone growth or healing fractures, Paget's disease, low vitamin D, pregnancy. Teens normally run high.",
+ lo:"Low zinc or magnesium, malnutrition, low thyroid, or a rare inherited bone condition.",
+ fix:"Check GGT to tell liver from bone. Get enough vitamin D and treat liver or bile problems.",
+ quip:"ALP high and GGT high? Trouble's in the liver. ALP high and GGT fine? Look to the bones, partner.",
+ q:"High ALP with a normal GGT usually points to…", a:"Bone, not liver", w:["The liver","The thyroid","The bladder"]},
+
+// ---------- MORE URINE ----------
+{s:"Urine", n:"Urine bilirubin", hint:"Yellow pigment that ain't supposed to be in the creek.",
+ what:"Bilirubin that the liver processed but that leaks into urine when bile can't flow out properly.",
+ range:"Negative",
+ hi:"Liver disease or blocked bile ducts (stones, tumors). Urine turns dark like tea.",
+ lo:"Negative is normal.",
+ fix:"A positive result with yellow eyes, dark urine or pale stools needs a doctor soon.",
+ quip:"Pee the color of sweet tea when you haven't touched a drop of tea? Liver's callin'.",
+ q:"Bilirubin in urine points to a problem with…", a:"The liver or bile ducts", w:["The lungs","The bladder muscle","The thyroid"]},
+{s:"Urine", n:"Urobilinogen", hint:"Gut bugs' leftover from bilirubin.",
+ what:"Made when gut bacteria break down bilirubin. A small amount gets reabsorbed and shows up in urine.",
+ range:"About 0.2–1.0 mg/dL (a little is normal)",
+ hi:"Liver disease or fast breakdown of red blood cells.",
+ lo:"Absent can mean a blocked bile duct, since bilirubin never reaches the gut.",
+ fix:"Read with blood bilirubin and liver tests. Treat the cause.",
+ quip:"A trace in the trough is normal. None at all means the creek upstream's dammed up.",
+ q:"No urobilinogen at all in urine can suggest…", a:"A blocked bile duct", w:["Perfect hydration","Too much vitamin C","A cold"]},
+{s:"Urine", n:"Urine color", hint:"The free test you do every trip to the outhouse.",
+ what:"Color mostly shows hydration, but foods, meds and disease change it too.",
+ range:"Pale straw to light amber",
+ hi:"Dark amber: dehydration. Tea or cola: bilirubin or muscle breakdown (after extreme exercise). Red or pink: blood, beets. Bright neon yellow: B vitamins. Orange: some meds.",
+ lo:"Clear as water all day: you may be drinking more than you need.",
+ fix:"Aim for pale straw. Cola-colored urine after a brutal workout with sore muscles needs urgent care.",
+ quip:"Neon yellow pee after your multivitamin? That's just riboflavin showin' off.",
+ q:"Bright neon-yellow urine after a multivitamin is usually from…", a:"Riboflavin (vitamin B2)", w:["Kidney failure","An infection","Low iron"]},
+
+// ---------- MORE VITAMINS & MINERALS ----------
+{s:"Vitamins & minerals", n:"Vitamin E", hint:"The oil-loving antioxidant.",
+ what:"A fat-soluble antioxidant that protects cell membranes. Found in nuts, seeds and plant oils.",
+ range:"Daily need: 15 mg · upper limit 1,000 mg from supplements",
+ hi:"High-dose pills raise bleeding risk, especially with blood thinners. A big trial found 400 IU daily slightly raised prostate cancer risk.",
+ lo:"Rare. Nerve and muscle problems, mainly in people who can't absorb fat.",
+ fix:"A handful of almonds or sunflower seeds covers most of a day. Pills usually aren't needed.",
+ quip:"A pocketful of sunflower seeds beats a bottle of E capsules every time.",
+ q:"A risk of high-dose vitamin E pills is…", a:"More bleeding", w:["Night blindness","Scurvy","Gout"]},
+{s:"Vitamins & minerals", n:"Vitamin B6", hint:"The nerve vitamin with a mean streak at high doses.",
+ what:"Helps make brain chemicals, red blood cells and process protein.",
+ range:"Daily need: 1.3–1.7 mg · US upper limit 100 mg (Europe sets it at 12 mg)",
+ hi:"Long-term high doses cause nerve damage: tingling and numb hands and feet. It hides in energy drinks and stacked supplements.",
+ lo:"Rash, cracked lips, low mood, anemia. More common with heavy alcohol or kidney disease.",
+ fix:"Poultry, fish, potatoes, chickpeas, bananas. Check labels so supplements don't stack up.",
+ quip:"Too little B6 and your nerves fuss. Too much and they fuss louder. Contrary critter.",
+ q:"What can happen from too much B6 over time?", a:"Nerve damage with tingling hands and feet", w:["Stronger bones","Better night vision","Lower cholesterol"]},
+{s:"Vitamins & minerals", n:"Thiamine (B1)", hint:"The brain fuel booze steals first.",
+ what:"Helps turn carbs into energy, especially for brain and nerves.",
+ range:"Daily need: 1.2 mg men, 1.1 mg women",
+ hi:"No known toxicity from food or usual pills.",
+ lo:"Heavy drinking, weight-loss surgery and very poor diets. Can cause beriberi, or Wernicke's: confusion, wobbly walking, odd eye movements. That's an emergency.",
+ fix:"Pork, whole grains, beans, seeds. Heavy drinkers often need supplements.",
+ quip:"Whiskey drinks up your B1 before it drinks up your wallet.",
+ q:"Who is at highest risk of thiamine deficiency?", a:"Heavy drinkers", w:["People who eat pork","Marathon spectators","People who drink milk"]},
+{s:"Vitamins & minerals", n:"Iodine", hint:"The thyroid's building block.",
+ what:"A mineral the thyroid uses to make T4 and T3 hormones.",
+ range:"Daily need: 150 mcg (220 pregnant, 290 breastfeeding) · upper limit 1,100 mcg",
+ hi:"Too much (kelp pills, seaweed binges) can also throw the thyroid off.",
+ lo:"Goiter (swollen thyroid), low thyroid, and harm to a baby's brain in pregnancy.",
+ fix:"Iodized salt, seafood, dairy, eggs. Fancy sea salt and kosher salt usually have none.",
+ quip:"Fancy pink salt looks pretty, but it won't feed your thyroid like plain iodized salt.",
+ q:"Lack of iodine can cause…", a:"A goiter (swollen thyroid)", w:["Gout","Kidney stones","Scurvy"]},
+
+// ---------- MORE HORMONES ----------
+{s:"Hormones", n:"Free T3", hint:"The hard-workin' active thyroid hormone.",
+ what:"The active thyroid hormone. Most of it is made by converting T4 in body tissues.",
+ range:"About 2.3–4.2 pg/mL",
+ hi:"Overactive thyroid. Sometimes T3 rises before T4 does.",
+ lo:"Underactive thyroid, but also low during serious illness, fasting or heavy calorie cutting.",
+ fix:"Treated with thyroid meds as needed. Don't chase a low T3 during illness or a crash diet.",
+ quip:"T4's the herd, T3's the cattle that actually get to market.",
+ q:"Besides thyroid disease, what can lower T3?", a:"Serious illness or very low-calorie dieting", w:["Drinking water","Eating iodized salt","Walking daily"]},
+{s:"Hormones", n:"SHBG", hint:"The babysitter that holds sex hormones.",
+ what:"Sex hormone-binding globulin, a liver protein that grips testosterone and estrogen so they can't act. Free hormone is what works.",
+ range:"Men about 10–57 nmol/L · women about 18–144 nmol/L",
+ hi:"Aging, overactive thyroid, liver disease, low-calorie diets, estrogen or birth control pills. Less free testosterone.",
+ lo:"Obesity, insulin resistance, low thyroid. More free hormone, linked to diabetes risk.",
+ fix:"Weight loss and better insulin sensitivity raise low SHBG. Read it with total testosterone to estimate free testosterone.",
+ quip:"SHBG's the strict chaperone at the barn dance. More of him, fewer hormones dancin'.",
+ q:"High SHBG means…", a:"Less free, active testosterone", w:["More free testosterone","Higher blood sugar","Low vitamin C"]},
+{s:"Hormones", n:"DHEA-S", hint:"The adrenal hormone that fades with age.",
+ what:"A hormone made mostly by the adrenal glands. The body turns it into testosterone and estrogen.",
+ range:"Depends heavily on age and sex: peaks in your 20s, then falls steadily",
+ hi:"PCOS, rarely an adrenal tumor. Acne and extra hair in women.",
+ lo:"Normal aging, adrenal insufficiency, long-term steroid use.",
+ fix:"Usually nothing. DHEA pills are sold widely but have weak evidence and can cause acne and hormone side effects.",
+ quip:"DHEA-S is like your rodeo days: peaks at 25 and it's downhill from there.",
+ q:"How does DHEA-S change with age?", a:"It peaks in your 20s and declines after", w:["It rises every year","It stays exactly the same","It only appears after 60"]},
+{s:"Hormones", n:"Parathyroid hormone (PTH)", hint:"The calcium sheriff in your neck.",
+ what:"Made by four tiny glands behind the thyroid. Raises blood calcium by pulling it from bone, holding it in the kidneys and activating vitamin D.",
+ range:"About 15–65 pg/mL",
+ hi:"With high calcium: overactive parathyroid. With normal or low calcium: low vitamin D or kidney disease.",
+ lo:"Too much calcium or vitamin D, or damage after neck surgery.",
+ fix:"Fix low vitamin D first. An overactive gland is often cured with surgery.",
+ quip:"PTH is the sheriff who'll rob the bone bank to keep calcium in town.",
+ q:"A common reason for high PTH with normal calcium is…", a:"Low vitamin D", w:["Too much vitamin C","Drinking coffee","Low cholesterol"]},
+{s:"Hormones", n:"IGF-1", hint:"Growth hormone's steady messenger.",
+ what:"Made in the liver when growth hormone tells it to. Since growth hormone comes in pulses, IGF-1 is the steadier way to check it.",
+ range:"Depends on age: highest in teens, falls through adulthood",
+ hi:"Acromegaly (a growth hormone tumor) or growth hormone use. Enlarged hands, feet, jaw.",
+ lo:"Growth hormone deficiency, malnutrition, liver disease, low thyroid, aging.",
+ fix:"Enough protein and calories. Growth hormone shots only for diagnosed deficiency.",
+ quip:"Growth hormone gallops in bursts. IGF-1 is the dust cloud that hangs around long enough to see.",
+ q:"Why test IGF-1 instead of growth hormone itself?", a:"Growth hormone comes in pulses; IGF-1 stays steady", w:["IGF-1 is cheaper candy","Growth hormone doesn't exist in adults","IGF-1 measures kidney function"]},
+
+// ---------- MORE SUPPLEMENTS ----------
+{s:"Supplements", n:"Iron pills", hint:"Strong medicine for an empty iron barn, and dangerous in the wrong hands.",
+ what:"Iron salts like ferrous sulfate, used to refill iron stores.",
+ range:"Often 18–65 mg elemental iron; every-other-day dosing can absorb better · upper limit 45 mg/day without a doc",
+ hi:"Constipation, nausea, black stools. Accidental overdose is a leading cause of fatal poisoning in small children.",
+ lo:"Only take it when tests show low iron or ferritin.",
+ fix:"Take with vitamin C, away from coffee, tea, calcium and antacids. Lock the bottle away from kids.",
+ quip:"Iron pills and young'uns don't mix. Keep 'em up high like the good whiskey.",
+ q:"Iron pills absorb best when taken with…", a:"Vitamin C", w:["Coffee","Calcium","Tea"]},
+{s:"Supplements", n:"Calcium supplements", hint:"Bone mortar in a tablet.",
+ what:"Calcium carbonate or citrate, for people who don't get enough from food.",
+ range:"Total need 1,000–1,200 mg/day from all sources · take 500 mg or less at a time",
+ hi:"Kidney stones, constipation. Upper limit 2,000–2,500 mg/day.",
+ lo:"Low intake contributes to bone loss.",
+ fix:"Food first: dairy, fortified plant milk, canned salmon, tofu. Carbonate needs food; citrate works anytime. Pair with vitamin D.",
+ quip:"Your gut can only rope about 500 milligrams at a time. Split the herd.",
+ q:"How much calcium does your body absorb well in one dose?", a:"About 500 mg or less", w:["About 5,000 mg","About 50 mg","Unlimited"]},
+{s:"Supplements", n:"Turmeric / curcumin", hint:"The golden spice with a poor absorption record.",
+ what:"Curcumin is the active part of turmeric. Some studies show modest help for joint pain.",
+ range:"Studied doses about 500–2,000 mg/day of extract",
+ hi:"Stomach upset, rare liver injury reports, may add to bleeding with blood thinners. Avoid with gallstones.",
+ lo:"Cooking amounts are safe and tasty.",
+ fix:"Black pepper (piperine) boosts absorption a lot. Tell your doc if you take blood thinners.",
+ quip:"Curcumin without black pepper is like a horse without a saddle. Hard to get anywhere.",
+ q:"What boosts curcumin absorption?", a:"Black pepper (piperine)", w:["Ice water","Vitamin K","Salt"]},
+{s:"Supplements", n:"Probiotics", hint:"Friendly critters for the gut ranch.",
+ what:"Live bacteria or yeast. Effects depend on the exact strain.",
+ range:"Doses listed in CFU (often 1–20 billion); strain matters more than number",
+ hi:"Gas and bloating at first. Rare infections in very sick or immune-suppressed people.",
+ lo:"Fermented foods like yogurt, kefir, sauerkraut and kimchi add live cultures.",
+ fix:"Best evidence: preventing diarrhea during antibiotics with specific strains (like Saccharomyces boulardii or LGG).",
+ quip:"Pickin' a probiotic is like pickin' a horse. The breed matters more than the herd size.",
+ q:"Where is the evidence for probiotics strongest?", a:"Preventing diarrhea from antibiotics", w:["Curing the flu","Lowering cholesterol to zero","Growing hair"]},
+{s:"Supplements", n:"Collagen", hint:"Connective-tissue protein in a scoop.",
+ what:"Protein from animal skin and bones, broken into peptides. The body digests it to amino acids.",
+ range:"Typical dose: 2.5–15 g/day",
+ hi:"Generally safe. It's an incomplete protein (missing tryptophan), so don't count it as your main protein.",
+ lo:"Your body makes its own collagen, using vitamin C.",
+ fix:"Some studies show modest help for skin elasticity and joint pain. Get enough vitamin C and total protein too.",
+ quip:"Collagen's a fine fence post, but it can't build the whole barn.",
+ q:"Which vitamin does your body need to build collagen?", a:"Vitamin C", w:["Vitamin K","Vitamin D","Vitamin B12"]}
+];
+
+// Memory tricks, keyed by card name
+const MEMO = {
+ "Chloride":"Sodium's sidekick: Na up, Cl up. Vomiting dumps chloride overboard.",
+ "Carbon dioxide (CO2 / bicarbonate)":"Low CO2, Lots of acid. High CO2, Heaved (vomiting) the acid out.",
+ "Total protein":"Total = A + G: Albumin plus Globulins.",
+ "Globulin & A/G ratio":"G for Guards: globulins include the antibody guards.",
+ "Alkaline phosphatase (ALP)":"ALP with GGT = Liver. ALP alone = Bones.",
+
+ "BUN/creatinine ratio":"“Twenty's plenty”: over 20, think Dry or Bleeding before blaming the kidneys.",
+ "Fasting glucose":"Under 100 is fine. Think “one-two-six, diabetes fix”: 126 or higher is the diabetes line.",
+ "HbA1c":"5.7 and 6.5 use the same digits, flipped. 5.7 starts prediabetes, 6.5 means diabetes.",
+ "LDL cholesterol":"LDL = Lousy. Keep it Low.",
+ "HDL cholesterol":"HDL = Happy/Healthy. Keep it High.",
+ "Triglycerides":"Dodge the 3 S's: Sugar, Spirits, Starch. Stay under 150.",
+ "Hemoglobin":"Hemo-GLOBE-in hauls the oxygen globe. Around 12+ for her, 13.5+ for him.",
+ "White blood cells (WBC)":"W for War. “Four to eleven, germ-fighting heaven.”",
+ "Platelets":"PLATE-lets plate over leaks. 150 to 450 thousand.",
+ "Creatinine & eGFR":"Creatinine is muscle trash, kidneys take out the trash. eGFR is the “Good Filter Rate”; 60 is the warning line.",
+ "ALT (liver enzyme)":"ALT = Alarm for Liver Trouble.",
+ "Sodium":"“One-forty, give or take five” (135–145).",
+ "Potassium":"K = Kicker, it keeps the heart kickin'. “Three-and-a-half to five keeps the heart alive.”",
+ "hs-CRP":"CRP = Campfire Raising Plumes. Under 1 good, over 3 bad.",
+ "Ferritin":"FERR = iron in Latin (ferrum). Ferritin is the iron's storage tin.",
+ "Uric acid":"Gout's BOSS: Beer, Organ meats, Shellfish, Soda.",
+ "PSA (men)":"PSA rises with the 3 A's: Age, Activity in the saddle, Afterglow (recent ejaculation).",
+ "Urine albumin (ACR)":"Albumin belongs in the blood, not the bowl. Under 30 is the rule.",
+ "Urine glucose":"Sugar spills at one-eighty (180 mg/dL), like a dam overflowing.",
+ "Ketones":"Keto or fasting: fine. Ketones plus type 1 plus high sugar: ride to the ER.",
+ "Nitrites & leukocyte esterase":"Nitrites + Leukocytes = Nasty Little bladder bugs.",
+ "Blood in urine":"Red pee? Think BEETS: Bladder infection, Exercise, Eaten beets, Tumor (rare), Stones.",
+ "Specific gravity":"Higher number, heavier and thirstier pee.",
+ "Urine pH":"Meat makes it sour (low pH), veggies make it soapy (high pH).",
+ "Vitamin D (25-OH)":"D for Daylight. 20 is deficient, 30 is good, 4,000 IU is the ceiling.",
+ "Vitamin B12":"B12 = Beef 12. Found only in animal foods.",
+ "Folate (B9)":"Folate comes from Foliage.",
+ "Vitamin C":"C for Collagen, and lack of it gives sCurvy.",
+ "Vitamin A":"A for “Aye-sight” in the dark.",
+ "Vitamin K":"K for Koagulation (the German spelling). Keep K Konsistent on warfarin.",
+ "Magnesium":"Mg = Muscle Mellower. Oxide form = Outhouse.",
+ "TSH":"TSH is a seesaw with the thyroid: thyroid down, TSH up.",
+ "Free T4":"T4 carries 4 iodine atoms, T3 carries 3. No iodine, no hormone.",
+ "Testosterone":"“Test T at sunup.” Under 300 is the low line for men.",
+ "Estradiol":"E2 changes like prairie weather. Always ask what cycle day it was.",
+ "Cortisol":"Cortisol crows with the rooster: highest at sunrise.",
+ "Fasting insulin":"Insulin is the key. Rusty lock (resistance) means more keys (high insulin).",
+ "Prolactin":"PRO-LACT-in = pro-milk. High levels shove sex hormones down.",
+ "Creatine monohydrate":"Creatine in, creatinine up. Same family, different job.",
+ "Fish oil (omega-3)":"Fish Fights Fat: it lowers triglycerides.",
+ "Protein powder (whey)":"“One-point-six to fix”: 1.6 g per kg per day.",
+ "Melatonin":"Mela-TONIGHT: a timing signal, not a knockout punch.",
+ "Caffeine":"Four cups, 400 mg. Half's still ridin' with you 5 hours later.",
+ "Biotin (B7)":"Biotin Botches Blood tests.",
+ "Ashwagandha":"Ashwa = horse. Watch the Liver, partner.",
+ "Zinc":"Zinc Zaps copper when overdone. 40 mg ceiling.",
+ "Psyllium fiber":"Psyllium needs a sip: fiber plus water.",
+ "AST (liver/muscle enzyme)":"AST shows up in muscle too. AST double ALT? Think Spirits.",
+ "GGT":"GGT = Gulping Gin Too much.",
+ "Bilirubin":"Bili = yellow. Bilirubin up, eyes turn yellow.",
+ "Albumin":"Albumin is the sponge holding water in the pipes. Low sponge, swollen ankles.",
+ "Calcium (blood)":"High calcium: “stones, bones, groans and moans” (kidney stones, bone pain, belly aches, confusion).",
+ "MCV":"Small cells, short on iron. Big cells, B12, folate or booze.",
+ "BUN":"BUN rises with Dry (dehydration) and Beef (protein).",
+ "ApoB":"ApoB = one Badge per Bad particle. Count the badges, count the bandits.",
+ "Lp(a)":"Little (a) for Ancestry: inherited, test once.",
+ "Homocysteine":"Homocysteine needs the B-team: B6, B9 (folate), B12.",
+ "Urine bilirubin":"Tea-colored pee? Think liver and bile.",
+ "Urobilinogen":"Uro-BILI-nogen: bilirubin chewed by gut bugs. A trace is normal, zero means a blocked duct.",
+ "Urine color":"Pale straw is perfect, apple juice means drink up, cola means call the doc.",
+ "Vitamin E":"E for Easy bleeding at high doses.",
+ "Vitamin B6":"B6 is a two-way tingle: too little or too much both hurt nerves.",
+ "Thiamine (B1)":"B1 = Booze's 1st victim.",
+ "Iodine":"Without iodine, “I'd-a-goiter.”",
+ "Free T3":"T4 drops one iodine and becomes T3, the one that does the work.",
+ "SHBG":"SHBG = Sex Hormone BabysittinG. More babysitter, less free play.",
+ "DHEA-S":"DHEA-S peaks in your twenties, then fades like an old campfire.",
+ "Parathyroid hormone (PTH)":"PTH Pulls calcium up: from Bones, Kidneys and vitamin D.",
+ "IGF-1":"Growth hormone gallops in bursts; IGF-1 is the steady dust cloud you can measure.",
+ "Iron pills":"Iron with C, never with coffee, tea or calcium.",
+ "Calcium supplements":"500 at a time. Carbonate with chow, citrate anytime.",
+ "Turmeric / curcumin":"Curcumin needs pepper to ride.",
+ "Probiotics":"Strain matters, like breed matters in horses.",
+ "Collagen":"Collagen needs C to be built, and it's not a complete protein."
+};
+const ICON = {"Chloride": "💧", "Carbon dioxide (CO2 / bicarbonate)": "🫧", "Total protein": "🧺", "Globulin & A/G ratio": "🎈", "Alkaline phosphatase (ALP)": "🏗️", "BUN/creatinine ratio": "⚖️", "Fasting glucose": "🍬", "HbA1c": "🗓️", "LDL cholesterol": "🦹", "HDL cholesterol": "🤠", "Triglycerides": "🍺", "Hemoglobin": "🚂", "White blood cells (WBC)": "🛡️", "Platelets": "🩹", "Creatinine & eGFR": "🫘", "ALT (liver enzyme)": "🚨", "Sodium": "🧂", "Potassium": "🍌", "hs-CRP": "🔥", "Ferritin": "🧲", "Uric acid": "🦶", "PSA (men)": "🚲", "Urine albumin (ACR)": "🚧", "Urine glucose": "🍯", "Ketones": "🥓", "Nitrites & leukocyte esterase": "🦠", "Blood in urine": "🍠", "Specific gravity": "🌵", "Urine pH": "🍋", "Vitamin D (25-OH)": "☀️", "Vitamin B12": "🥩", "Folate (B9)": "🥬", "Vitamin C": "🍊", "Vitamin A": "🥕", "Vitamin K": "🩸", "Magnesium": "😌", "TSH": "🎛️", "Free T4": "4️⃣", "Testosterone": "🐂", "Estradiol": "🌙", "Cortisol": "🐓", "Fasting insulin": "🔑", "Prolactin": "🍼", "Creatine monohydrate": "🏋️", "Fish oil (omega-3)": "🐟", "Protein powder (whey)": "🥛", "Melatonin": "😴", "Caffeine": "☕", "Biotin (B7)": "🃏", "Ashwagandha": "🐴", "Zinc": "🦪", "Psyllium fiber": "🧹", "AST (liver/muscle enzyme)": "💪", "GGT": "🥃", "Bilirubin": "🌻", "Albumin": "🧽", "Calcium (blood)": "🦴", "MCV": "🛞", "BUN": "🍖", "ApoB": "⭐", "Lp(a)": "👴", "Homocysteine": "🍽️", "Urine bilirubin": "🫖", "Urobilinogen": "🐛", "Urine color": "🎨", "Vitamin E": "🌰", "Vitamin B6": "⚡", "Thiamine (B1)": "🧠", "Iodine": "🌊", "Free T3": "🐄", "SHBG": "👵", "DHEA-S": "🏕️", "Parathyroid hormone (PTH)": "🏦", "IGF-1": "🌱", "Iron pills": "💊", "Calcium supplements": "🥄", "Turmeric / curcumin": "🌶️", "Probiotics": "🐞", "Collagen": "🧱"};
+const WORDS = {"Chloride": ["Cl", "Greek chloros, pale green, for the color of chlorine gas."], "Carbon dioxide (CO2 / bicarbonate)": ["CO2 = Carbon dioxide · HCO3 = bicarbonate", "Di = two oxygens. “Bi”-carbonate is an old name: it holds twice the carbonic acid per sodium as plain carbonate."], "Total protein": ["TP", "Protein from Greek proteios, “of first importance.”"], "Globulin & A/G ratio": ["A/G = Albumin-to-Globulin ratio", "Globulin = small globe-shaped protein. Immunoglobulin = immune + globulin."], "Alkaline phosphatase (ALP)": ["ALP = ALkaline Phosphatase (also ALK PHOS)", "Alkaline: works best in a base, from Arabic al-qali (ashes). Phosphatase: an enzyme that snips off phosphate groups."], 
+"BUN/creatinine ratio": ["BUN = Blood Urea Nitrogen · Cr = Creatinine", "Ratio from Latin ratio, “reckoning.” Doctors call a high ratio “prerenal”: pre (before) + renal (Latin renes, kidneys)."],
+"Fasting glucose": [
+"FBG / FPG = Fasting Blood (or Plasma) Glucose",
+"Glucose: Greek glykys, sweet. Same root as “glycemic” and “glycerin.”"
+],
+"HbA1c": [
+"Hb = Hemoglobin · A1c = the glycated “A1c” fraction",
+"Glycated: from Greek glykys, sweet, meaning sugar has stuck onto it."
+],
+"LDL cholesterol": [
+"LDL = Low-Density Lipoprotein",
+"Lipo = Greek lipos, fat. Cholesterol = Greek chole (bile) + stereos (solid), because it was first found in gallstones."
+],
+"HDL cholesterol": [
+"HDL = High-Density Lipoprotein",
+"High density because it carries more protein and less fat, and protein is denser than fat."
+],
+"Triglycerides": [
+"TG",
+"Tri = three fatty acids hooked onto one glycerol. Glycerol from Greek glykys, sweet, since it tastes sweet."
+],
+"Hemoglobin": [
+"Hb or Hgb",
+"Hemo = Greek haima, blood. Globin = a globe-shaped protein."
+],
+"White blood cells (WBC)": [
+"WBC = White Blood Cell count · also called leukocytes",
+"Leukocyte = Greek leukos (white) + kytos (cell)."
+],
+"Platelets": [
+"PLT · also called thrombocytes",
+"“Little plates,” for their flat disc shape. Thrombocyte from Greek thrombos, clot."
+],
+"Creatinine & eGFR": [
+"eGFR = estimated Glomerular Filtration Rate",
+"Creatinine from Greek kreas, meat. Glomerulus = Latin glomus, a ball of yarn, for the tangled filter capillaries."
+],
+"ALT (liver enzyme)": [
+"ALT = ALanine aminoTransferase (old name SGPT)",
+"Transferase = an enzyme that transfers (moves) an amino group. Alanine is the amino acid it works on."
+],
+"Sodium": [
+"Na (from Latin natrium)",
+"Natrium comes from natron, an ancient Egyptian salt used to make mummies."
+],
+"Potassium": [
+"K (from Latin kalium)",
+"Potash = “pot ash”: it was made by soaking wood ashes in pots. Kalium is from Arabic al-qali, ashes, the same root as “alkali.”"
+],
+"hs-CRP": [
+"hs-CRP = high-sensitivity C-Reactive Protein",
+"“C-reactive” because in 1930 it was found reacting with the “C” sugar of pneumonia bacteria."
+],
+"Ferritin": [
+"",
+"Latin ferrum, iron. That's why iron's chemical symbol is Fe."
+],
+"Uric acid": [
+"UA",
+"Greek ouron, urine, where it was first found. Gout comes from Latin gutta, a drop, from the old idea of bad fluids dripping into joints."
+],
+"PSA (men)": [
+"PSA = Prostate-Specific Antigen",
+"Prostate from Greek prostates, “one who stands in front,” since it sits in front of the bladder. Antigen = “antibody generator.”"
+],
+"Urine albumin (ACR)": [
+"ACR = Albumin-to-Creatinine Ratio",
+"Albumin from Latin albus, white, like egg white (albumen)."
+],
+"Urine glucose": [
+"Medical term: glycosuria",
+"Glykys (sweet) + ouron (urine). Diabetes mellitus = Greek “siphon” + Latin “honey-sweet,” for lots of sweet urine."
+],
+"Ketones": [
+"",
+"From German Keton, coined from Aketon, the old German word for acetone."
+],
+"Nitrites & leukocyte esterase": [
+"LE = Leukocyte Esterase · UTI = Urinary Tract Infection",
+"Esterase = an enzyme that splits esters. Leuko = white, so it flags white blood cells."
+],
+"Blood in urine": [
+"Medical term: hematuria",
+"Greek haima (blood) + ouron (urine)."
+],
+"Specific gravity": [
+"SG",
+"“Specific” means compared with a standard, here water = 1.000. Gravity from Latin gravis, heavy."
+],
+"Urine pH": [
+"pH = “power of Hydrogen”",
+"Coined in 1909 by Danish chemist Søren Sørensen at the Carlsberg brewery lab."
+],
+"Vitamin D (25-OH)": [
+"25-OH = 25-hydroxy vitamin D (an OH group added at carbon 25)",
+"Vitamin from “vital amine” (Casimir Funk, 1912). D was simply the fourth vitamin named."
+],
+"Vitamin B12": [
+"B12 = cobalamin",
+"Cobalamin because it holds a cobalt atom at its center."
+],
+"Folate (B9)": [
+"B9 = folate (folic acid is the pill form)",
+"Latin folium, leaf, since it was first pulled from spinach leaves."
+],
+"Vitamin C": [
+"Ascorbic acid",
+"A-scorbic = “anti-scurvy,” from Latin scorbutus, scurvy."
+],
+"Vitamin A": [
+"Retinol · RAE = Retinol Activity Equivalents",
+"Retinol from retina, where it builds the light-sensing pigment."
+],
+"Vitamin K": [
+"INR = International Normalized Ratio (a clotting test)",
+"K for Koagulation, the German and Danish spelling, named by Danish scientist Henrik Dam."
+],
+"Magnesium": [
+"Mg",
+"From Magnesia, a region of Greece rich in these minerals. The word “magnet” comes from the same place."
+],
+"TSH": [
+"TSH = Thyroid-Stimulating Hormone",
+"Thyroid from Greek thyreoeides, “shield-shaped.” Hormone from Greek hormao, “to set in motion.”"
+],
+"Free T4": [
+"T4 = thyroxine (carries 4 iodine atoms)",
+"“Free” means not stuck to carrier proteins, so it can do its job."
+],
+"Testosterone": [
+"T",
+"Latin testis (testicle) + sterol + -one (a chemistry ending). Testis also meant “witness” in Latin."
+],
+"Estradiol": [
+"E2 = estradiol (an estrogen with 2 OH groups)",
+"Estrogen from Greek oistros, frenzy or gadfly, describing animals in heat."
+],
+"Cortisol": [
+"",
+"Latin cortex, bark or rind: it's made in the outer layer (cortex) of the adrenal glands."
+],
+"Fasting insulin": [
+"",
+"Latin insula, island: it's made in the “islets” of Langerhans in the pancreas."
+],
+"Prolactin": [
+"PRL",
+"Pro (for) + Latin lac, milk."
+],
+"Creatine monohydrate": [
+"",
+"Greek kreas, meat: first isolated from meat in 1832. Monohydrate = bound to one water molecule."
+],
+"Fish oil (omega-3)": [
+"EPA = EicosaPentaenoic Acid · DHA = DocosaHexaenoic Acid",
+"Omega-3: the first double bond sits 3 carbons from the omega (last) end of the fat. Eicosa = 20 carbons, docosa = 22."
+],
+"Protein powder (whey)": [
+"",
+"Whey: Old English hwæg, the watery part left after milk curdles (Little Miss Muffet's curds and whey). Protein: Greek proteios, “of first importance.”"
+],
+"Melatonin": [
+"",
+"Greek melas, black, + tonin (from serotonin): it lightens the dark pigment cells in frog skin."
+],
+"Caffeine": [
+"",
+"German Kaffein, from Kaffee, coffee."
+],
+"Biotin (B7)": [
+"B7 · once called vitamin H",
+"Greek biotos, life. “H” came from German Haar und Haut, hair and skin."
+],
+"Ashwagandha": [
+"",
+"Sanskrit ashva (horse) + gandha (smell), for the root's horsey smell and the strength of a horse it's said to give."
+],
+"Zinc": [
+"Zn",
+"German Zink, probably from Zinke, a prong, after its jagged crystals."
+],
+"Psyllium fiber": [
+"",
+"Greek psylla, flea: the tiny seeds look like fleas."
+],
+"AST (liver/muscle enzyme)": [
+"AST = ASpartate aminoTransferase (old name SGOT)",
+"Aspartate is named after asparagus, where its amino acid was first found."
+],
+"GGT": [
+"GGT = Gamma-Glutamyl Transferase",
+"It moves glutamyl groups. Glutamate comes from Latin gluten, glue."
+],
+"Bilirubin": [
+"",
+"Latin bilis (bile) + ruber (red)."
+],
+"Albumin": [
+"ALB",
+"Latin albus, white, like egg white."
+],
+"Calcium (blood)": [
+"Ca",
+"Latin calx, lime (limestone). Same root as “chalk” and “calculate” (counting with pebbles)."
+],
+"MCV": [
+"MCV = Mean Corpuscular Volume",
+"Corpuscle = Latin “little body,” an old word for cell. fL = femtoliter, a quadrillionth of a liter."
+],
+"BUN": [
+"BUN = Blood Urea Nitrogen",
+"Urea is named after urine, where it was first found."
+],
+"ApoB": [
+"ApoB = Apolipoprotein B",
+"Apo = Greek “away from”: the protein part of a lipoprotein, minus the fat."
+],
+"Lp(a)": [
+"Lp(a) = Lipoprotein “little a”",
+"Lipo = fat. The (a) is an extra protein, apo(a), bolted onto an LDL particle."
+],
+"Homocysteine": [
+"Hcy",
+"Homo = Greek “same”: it's cysteine's twin with one extra carbon."
+],
+"Urine bilirubin": [
+"Medical term: bilirubinuria",
+"Bili (bile) + ruber (red) + ouron (urine)."
+],
+"Urobilinogen": [
+"UBG",
+"Uro (urine) + bili (bile) + -gen (maker): it turns into urobilin, part of urine's yellow."
+],
+"Urine color": [
+"",
+"The yellow pigment is urochrome: Greek ouron (urine) + chroma (color)."
+],
+"Vitamin E": [
+"Tocopherol",
+"Greek tokos (childbirth) + pherein (to carry): rats needed it to have babies."
+],
+"Vitamin B6": [
+"B6 = pyridoxine",
+"Named after its pyridine ring, a ring-shaped chemical structure."
+],
+"Thiamine (B1)": [
+"B1 = thiamine",
+"Thio = sulfur + amine. Beriberi is traditionally said to mean “I cannot, I cannot” in Sinhalese, for the weakness it causes."
+],
+"Iodine": [
+"I",
+"Greek iodes, violet, for the purple vapor it gives off when heated."
+],
+"Free T3": [
+"T3 = triiodothyronine (carries 3 iodine atoms)",
+"Tri = three. Thyronine is the base thyroid hormone molecule."
+],
+"SHBG": [
+"SHBG = Sex Hormone-Binding Globulin",
+"Globulin = a globe-shaped protein."
+],
+"DHEA-S": [
+"DHEA-S = DeHydroEpiAndrosterone Sulfate",
+"Andro = Greek “man.” The S means a sulfate is attached, which keeps it stable in blood."
+],
+"Parathyroid hormone (PTH)": [
+"PTH = ParaThyroid Hormone",
+"Para = Greek “beside”: the four glands sit beside the thyroid."
+],
+"IGF-1": [
+"IGF-1 = Insulin-like Growth Factor 1 · GH = Growth Hormone",
+"“Insulin-like” because its shape resembles insulin."
+],
+"Iron pills": [
+"Fe (from Latin ferrum)",
+"“Ferrous” sulfate means iron in its +2 form, the kind best absorbed."
+],
+"Calcium supplements": [
+"Ca",
+"Carbonate comes from carbon; citrate from citric acid, found in citrus fruit."
+],
+"Turmeric / curcumin": [
+"",
+"Curcumin from Arabic kurkum, saffron or turmeric. Turmeric possibly from Latin terra merita, “worthy earth.”"
+],
+"Probiotics": [
+"CFU = Colony-Forming Units",
+"Greek pro (for) + bios (life), the opposite of antibiotic."
+],
+"Collagen": [
+"",
+"Greek kolla (glue) + -gen (maker): boiling hides and bones made glue."
+]
+};
+CARDS.forEach(c => { c.m = MEMO[c.n] || ""; c.i = ICON[c.n] || "🤠"; [c.ab, c.root] = WORDS[c.n] || ["", ""]; });
+const SRC = {"Chloride": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/chloride-blood-test/"], "96–106 mmol/L (same numbers)", ["SI unit conversion; your lab's range wins", null]], "Carbon dioxide (CO2 / bicarbonate)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/carbon-dioxide-co2-in-blood/"], "Reported as bicarbonate, 23–29 mmol/L (same numbers)", ["SI unit conversion; your lab's range wins", null]], "Total protein": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/total-protein-and-albumin-globulin-a-g-ratio/"], "g/L: about 60–83", ["SI unit conversion; your lab's range wins", null]], "Globulin & A/G ratio": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/globulin-test/"], "g/L: about 20–35; A/G ratio the same", ["SI unit conversion; your lab's range wins", null]], "Alkaline phosphatase (ALP)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/alkaline-phosphatase/"], "Same unit (U/L); many European labs use an upper limit around 130", ["SI unit conversion; your lab's range wins", null]], "BUN/creatinine ratio": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/bun-blood-urea-nitrogen/"], "Europe often uses the urea:creatinine ratio (mmol/L ÷ mmol/L), about 4× higher: roughly 40–80 normal; above about 100 suggests dehydration or a bleed", ["SI unit conversion; your lab's range wins", null]], "Fasting glucose": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/blood-glucose-test/"], "3.9–5.5 mmol/L normal · WHO: 6.1–6.9 mmol/L impaired fasting glucose · 7.0+ mmol/L diabetes", ["WHO diabetes", "https://www.who.int/news-room/fact-sheets/detail/diabetes"]], "HbA1c": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/hemoglobin-a1c-hba1c-test/"], "IFCC units: under 39 mmol/mol normal · 48+ mmol/mol diabetes (WHO). The UK calls 42–47 mmol/mol prediabetes", ["WHO diabetes", "https://www.who.int/news-room/fact-sheets/detail/diabetes"]], "LDL cholesterol": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/cholesterol-levels/"], "ESC/EAS targets by risk: under 3.0 mmol/L (low) · 2.6 (moderate) · 1.8 (high) · 1.4 (very high)", ["ESC/EAS lipid guidelines", "https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/dyslipidaemias-management/"]], "HDL cholesterol": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/cholesterol-levels/"], "Above 1.0 mmol/L men, 1.2 mmol/L women is lower risk", ["ESC/EAS lipid guidelines", "https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/dyslipidaemias-management/"]], "Triglycerides": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/triglycerides-test/"], "Under 1.7 mmol/L fasting", ["ESC/EAS lipid guidelines", "https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/dyslipidaemias-management/"]], "Hemoglobin": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/hemoglobin-test/"], "Reported in g/L: about 135–175 men, 120–155 women · WHO anaemia below 130 g/L men, 120 g/L non-pregnant women", ["WHO anaemia cutoffs (2024)", "https://www.who.int/publications/i/item/9789240088542"]], "White blood cells (WBC)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/white-blood-count-wbc/"], "Written as 4.5–11.0 × 10⁹/L (same numbers); many European labs use about 4–10", ["SI unit conversion; your lab's range wins", null]], "Platelets": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/platelet-tests/"], "150–450 × 10⁹/L (same numbers)", ["SI unit conversion; your lab's range wins", null]], "Creatinine & eGFR": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/creatinine-test/"], "Creatinine in µmol/L: about 62–115 men, 53–97 women · eGFR stages are the same worldwide (KDIGO)", ["KDIGO 2024 kidney guideline", "https://kdigo.org/guidelines/ckd-evaluation-and-management/"]], "ALT (liver enzyme)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/alt-blood-test/"], "Same unit (U/L); upper limits vary by lab", ["SI unit conversion; your lab's range wins", null]], "Sodium": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/sodium-blood-test/"], "135–145 mmol/L (same numbers)", ["SI unit conversion; your lab's range wins", null]], "Potassium": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/potassium-blood-test/"], "3.5–5.0 mmol/L (same numbers)", ["SI unit conversion; your lab's range wins", null]], "hs-CRP": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/c-reactive-protein-crp-test/"], "Same unit (mg/L)", ["SI unit conversion; your lab's range wins", null]], "Ferritin": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/ferritin-blood-test/"], "Reported in µg/L, same numbers as ng/mL", ["SI unit conversion; your lab's range wins", null]], "Uric acid": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/uric-acid-test/"], "µmol/L: about 200–420 men, 140–360 women · EULAR gout target under 360 µmol/L (6 mg/dL)", ["EULAR gout recommendations", "https://pubmed.ncbi.nlm.nih.gov/27457514/"]], "PSA (men)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/prostate-specific-antigen-psa-test/"], "Reported in µg/L, same numbers · EAU: offer PSA testing after a shared decision, usually from age 50 (45 with family history)", ["EAU prostate guidelines", "https://uroweb.org/guidelines/prostate-cancer"]], "Urine albumin (ACR)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/microalbumin-creatinine-ratio/"], "Often in mg/mmol: under 3 normal · 3–30 moderately raised · over 30 severely raised", ["KDIGO 2024 kidney guideline", "https://kdigo.org/guidelines/ckd-evaluation-and-management/"]], "Urine glucose": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/glucose-in-urine-test/"], "Sugar spills into urine above about 10 mmol/L blood glucose", ["SI unit conversion; your lab's range wins", null]], "Ketones": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/ketones-in-urine/"], "Blood ketone meters read mmol/L: under 0.6 normal · 3.0+ with high sugar suggests ketoacidosis", ["SI unit conversion; your lab's range wins", null]], "Nitrites & leukocyte esterase": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/ency/article/003584.htm"], "Same dipstick test", ["SI unit conversion; your lab's range wins", null]], "Blood in urine": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/blood-in-urine/"], "Same test", ["SI unit conversion; your lab's range wins", null]], "Specific gravity": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/ency/article/003587.htm"], "Same scale", ["SI unit conversion; your lab's range wins", null]], "Urine pH": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/urinalysis.html"], "Same scale", ["SI unit conversion; your lab's range wins", null]], "Vitamin D (25-OH)": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/VitaminD-Consumer/"], "Blood in nmol/L (×2.5): 50 = 20 ng/mL, 75 = 30 ng/mL; many European bodies call under 25–30 nmol/L deficient · EFSA intake 15 µg (600 IU)/day, upper limit 100 µg (4,000 IU)", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Vitamin B12": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/VitaminB12-Consumer/"], "pmol/L: about 148–664 · EFSA intake 4 µg/day, no upper limit set", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Folate (B9)": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Folate-Consumer/"], "Serum folate above about 7 nmol/L · EFSA intake 330 µg/day; upper limit 1,000 µg folic acid", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Vitamin C": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/VitaminC-Consumer/"], "EFSA intake 110 mg men, 95 mg women; no upper limit set", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Vitamin A": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/VitaminA-Consumer/"], "EFSA intake 750 µg men, 650 µg women; upper limit 3,000 µg (preformed)", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Vitamin K": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/VitaminK-Consumer/"], "EFSA intake 70 µg/day; no upper limit set", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Magnesium": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Magnesium-Consumer/"], "Serum 0.70–0.90 mmol/L · EFSA intake 350 mg men, 300 mg women; supplement limit 250 mg/day", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "TSH": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/tsh-thyroid-stimulating-hormone-test/"], "Same unit (mIU/L)", ["SI unit conversion; your lab's range wins", null]], "Free T4": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/thyroxine-t4-test/"], "pmol/L: about 10–23", ["SI unit conversion; your lab's range wins", null]], "Testosterone": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/testosterone-levels-test/"], "nmol/L: men about 10–35 (European urology guidance calls under about 12 low) · women about 0.5–2.4", ["SI unit conversion; your lab's range wins", null]], "Estradiol": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/estrogen-levels-test/"], "pmol/L: men about 37–147; women vary by cycle", ["SI unit conversion; your lab's range wins", null]], "Cortisol": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/cortisol-test/"], "nmol/L: morning about 140–690", ["SI unit conversion; your lab's range wins", null]], "Fasting insulin": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/insulin-in-blood-test/"], "pmol/L: about 12–120", ["SI unit conversion; your lab's range wins", null]], "Prolactin": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/prolactin-levels/"], "mIU/L: women under about 530, men under about 320–425", ["SI unit conversion; your lab's range wins", null]], "Creatine monohydrate": [["ISSN position stand (2017)", "https://pubmed.ncbi.nlm.nih.gov/28615996/"], "EU-authorised claim: 3 g/day improves performance in short, intense exercise", ["EU health claims register", "https://food.ec.europa.eu/food-safety/labelling-and-nutrition/nutrition-and-health-claims/eu-register-health-claims_en"]], "Fish oil (omega-3)": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Omega3FattyAcids-Consumer/"], "EFSA: up to 5 g/day EPA+DHA raises no safety concern · heart-function claim from 250 mg/day", ["EU health claims register", "https://food.ec.europa.eu/food-safety/labelling-and-nutrition/nutrition-and-health-claims/eu-register-health-claims_en"]], "Protein powder (whey)": [["Harvard Nutrition Source", "https://nutritionsource.hsph.harvard.edu/your-questions-answered-protein/"], "EFSA protein reference: 0.83 g per kg body weight per day for adults", ["EFSA reference values", "https://multimedia.efsa.europa.eu/drvs/index.htm"]], "Melatonin": [["NIH NCCIH", "https://www.nccih.nih.gov/health/melatonin-what-you-need-to-know"], "EU-authorised claims: 1 mg near bedtime to fall asleep faster, 0.5 mg for jet lag. Several EU countries treat higher doses as medicines", ["EU health claims register", "https://food.ec.europa.eu/food-safety/labelling-and-nutrition/nutrition-and-health-claims/eu-register-health-claims_en"]], "Caffeine": [["US FDA", "https://www.fda.gov/consumers/consumer-updates/spilling-beans-how-much-caffeine-too-much"], "EFSA: up to 400 mg/day and 200 mg at once is safe for healthy adults; up to 200 mg/day in pregnancy", ["EFSA caffeine", "https://www.efsa.europa.eu/en/topics/topic/caffeine"]], "Biotin (B7)": [["US FDA biotin warning", "https://www.fda.gov/medical-devices/in-vitro-diagnostics/biotin-interference-troponin-lab-tests-assays-subject-biotin-interference"], "EFSA intake 40 µg/day; no upper limit set", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Ashwagandha": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Ashwagandha-Consumer/"], "Denmark banned it in supplements in 2023; Poland caps doses; France's food agency warns vulnerable groups", ["EU restrictions overview", "https://regask.com/regulatory-overview-bans-and-restrictions-on-herbal-supplements-including-ashwagandha-2023-2025/"]], "Zinc": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Zinc-Consumer/"], "EFSA upper limit 25 mg/day, lower than the US 40 mg", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Psyllium fiber": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/druginfo/meds/a601104.html"], "No EU upper limit; follow the label", ["SI unit conversion; your lab's range wins", null]], "AST (liver/muscle enzyme)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/ast-test/"], "Same unit (U/L); upper limits vary by lab", ["SI unit conversion; your lab's range wins", null]], "GGT": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/gamma-glutamyl-transferase-ggt-test/"], "Same unit (U/L); upper limits vary by lab", ["SI unit conversion; your lab's range wins", null]], "Bilirubin": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/bilirubin-blood-test/"], "µmol/L: about 2–21", ["SI unit conversion; your lab's range wins", null]], "Albumin": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/albumin-blood-test/"], "g/L: 35–50", ["SI unit conversion; your lab's range wins", null]], "Calcium (blood)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/calcium-blood-test/"], "mmol/L: about 2.15–2.55", ["SI unit conversion; your lab's range wins", null]], "MCV": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/mcv-mean-corpuscular-volume/"], "Same unit (fL)", ["SI unit conversion; your lab's range wins", null]], "BUN": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/bun-blood-urea-nitrogen/"], "European labs usually report urea instead: about 2.5–7.1 mmol/L", ["SI unit conversion; your lab's range wins", null]], "ApoB": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/ency/article/003502.htm"], "g/L: ESC/EAS targets under 1.0 (moderate risk), 0.8 (high), 0.65 (very high)", ["ESC/EAS lipid guidelines", "https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/dyslipidaemias-management/"]], "Lp(a)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/lipoprotein-a-blood-test/"], "ESC/EAS: measure at least once in life; above 50 mg/dL (about 105 nmol/L) means raised risk", ["ESC/EAS lipid guidelines", "https://www.escardio.org/guidelines/clinical-practice-guidelines/all-esc-practice-guidelines/dyslipidaemias-management/"]], "Homocysteine": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/homocysteine-test/"], "Same unit (µmol/L)", ["SI unit conversion; your lab's range wins", null]], "Urine bilirubin": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/bilirubin-in-urine/"], "Same test", ["SI unit conversion; your lab's range wins", null]], "Urobilinogen": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/urobilinogen-in-urine/"], "µmol/L: about 3–17", ["SI unit conversion; your lab's range wins", null]], "Urine color": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/ency/article/003139.htm"], "Same everywhere", ["SI unit conversion; your lab's range wins", null]], "Vitamin E": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/VitaminE-Consumer/"], "EFSA intake 13 mg men, 11 mg women; upper limit 300 mg", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Vitamin B6": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/VitaminB6-Consumer/"], "EFSA upper limit only 12 mg/day, far below the US 100 mg", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Thiamine (B1)": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Thiamin-Consumer/"], "EFSA: about 1 mg/day (0.1 mg per MJ of energy); no upper limit", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Iodine": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Iodine-Consumer/"], "EFSA intake 150 µg (200 µg pregnant or breastfeeding); upper limit 600 µg", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Free T3": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/triiodothyronine-t3-tests/"], "pmol/L: about 3.5–6.5", ["SI unit conversion; your lab's range wins", null]], "SHBG": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/shbg-blood-test/"], "Same unit (nmol/L)", ["SI unit conversion; your lab's range wins", null]], "DHEA-S": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/dhea-sulfate-test/"], "µmol/L, ranges depend on age · DHEA isn't sold as an ordinary food supplement in most EU countries", ["SI unit conversion; your lab's range wins", null]], "Parathyroid hormone (PTH)": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/parathyroid-hormone-pth-test/"], "pmol/L: about 1.6–6.9", ["SI unit conversion; your lab's range wins", null]], "IGF-1": [["MedlinePlus (US National Library of Medicine)", "https://medlineplus.gov/lab-tests/igf-1-insulin-like-growth-factor-1-test/"], "nmol/L, ranges depend on age", ["SI unit conversion; your lab's range wins", null]], "Iron pills": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Iron-Consumer/"], "EFSA safe level 40 mg/day (2024), a bit under the US 45 mg", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Calcium supplements": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/factsheets/Calcium-Consumer/"], "EFSA intake 950–1,000 mg; upper limit 2,500 mg/day", ["EFSA upper limits (2024)", "https://www.efsa.europa.eu/sites/default/files/2024-05/ul-summary-report.pdf"]], "Turmeric / curcumin": [["NIH NCCIH", "https://www.nccih.nih.gov/health/turmeric"], "EFSA acceptable daily intake for curcumin (food colour E100): 3 mg per kg body weight, about 210 mg for a 70 kg adult", ["SI unit conversion; your lab's range wins", null]], "Probiotics": [["NIH Office of Dietary Supplements", "https://ods.od.nih.gov/pdf/factsheets/Probiotics-Consumer.pdf"], "No probiotic health claim is authorised in the EU, so most EU countries don't allow “probiotic” on labels", ["EU health claims register", "https://food.ec.europa.eu/food-safety/labelling-and-nutrition/nutrition-and-health-claims/eu-register-health-claims_en"]], "Collagen": [["Harvard Nutrition Source", "https://nutritionsource.hsph.harvard.edu/collagen/"], "No EU limit and no authorised health claims", ["EU health claims register", "https://food.ec.europa.eu/food-safety/labelling-and-nutrition/nutrition-and-health-claims/eu-register-health-claims_en"]]};
+CARDS.forEach(c => { const x = SRC[c.n]; if (x) { c.src = x[0]; c.eu = x[1]; c.euSrc = x[2]; } });
+const CMP = {"Chloride": ["same", "Same numbers (mmol/L = mEq/L)."], "Carbon dioxide (CO2 / bicarbonate)": ["same", "Same numbers (mmol/L = mEq/L)."], "Total protein": ["same", "60–83 g/L = 6.0–8.3 g/dL."], "Globulin & A/G ratio": ["same", "20–35 g/L = 2.0–3.5 g/dL."], "Alkaline phosphatase (ALP)": ["same", "Same unit; upper limits depend on the lab and method."], "BUN/creatinine ratio": ["same", "Urea:creatinine 40–80 ≈ BUN/creatinine 10–20 (multiply by about 4). Same meaning, different scale."], "Fasting glucose": ["higher", "Normal (70–99 mg/dL) and diabetes (126+) match. WHO prediabetes starts at 110 mg/dL, US at 100."], "HbA1c": ["higher", "Diabetes line matches (48 mmol/mol = 6.5%). UK prediabetes starts at 6.0%, US at 5.7%."], "LDL cholesterol": ["lower", "Europe sets goals by risk: under 116 / 100 / 70 / 55 mg/dL. The very-high-risk goal (55) is far below the US “under 100” optimal."], "HDL cholesterol": ["lower", "Men match (1.0 mmol/L ≈ 39 mg/dL). Women: Europe 46 mg/dL vs US 50."], "Triglycerides": ["same", "1.7 mmol/L = 150 mg/dL, the same line."], "Hemoglobin": ["lower", "Normal range matches. WHO calls anemia in men below 13.0 g/dL; US labs often flag below 13.5."], "White blood cells (WBC)": ["different", "Many European labs use 4,000–10,000/µL vs the US 4,500–11,000."], "Platelets": ["same", "Same 150,000–450,000/µL."], "Creatinine & eGFR": ["same", "62–115 µmol/L = 0.7–1.3 mg/dL; eGFR stages are identical."], "ALT (liver enzyme)": ["same", "Same unit and similar limits; depends on the lab."], "Sodium": ["same", "Same 135–145."], "Potassium": ["same", "Same 3.5–5.0."], "hs-CRP": ["same", "Same mg/L and risk cut-offs."], "Ferritin": ["same", "µg/L and ng/mL are the same numbers."], "Uric acid": ["same", "420 µmol/L ≈ 7.0 mg/dL; gout target 360 µmol/L = 6.0 mg/dL, same as US."], "PSA (men)": ["different", "Same number. Europe (EAU) suggests discussing testing from 50 (45 with family history); the US task force from 55."], "Urine albumin (ACR)": ["same", "3 mg/mmol ≈ 30 mg/g and 30 mg/mmol ≈ 300 mg/g; KDIGO treats them as equal."], "Urine glucose": ["same", "10 mmol/L = 180 mg/dL, the same spill point."], "Ketones": ["same", "Same urine dipstick; Europe also uses blood ketone meters."], "Nitrites & leukocyte esterase": ["same", "Same test."], "Blood in urine": ["same", "Same test."], "Specific gravity": ["same", "Same scale."], "Urine pH": ["same", "Same scale."], "Vitamin D (25-OH)": ["lower", "Same daily need (600 IU) and upper limit (4,000 IU). But many European bodies call only under 10–12 ng/mL deficient, vs under 20 in the US."], "Vitamin B12": ["higher", "Europe recommends 4 µg/day vs the US 2.4 µg."], "Folate (B9)": ["lower", "Europe 330 µg/day vs US 400 µg. Folic acid upper limit is the same (1,000 µg)."], "Vitamin C": ["higher", "Europe 110 mg men / 95 mg women vs US 90 / 75 mg. The US sets an upper limit of 2,000 mg; Europe sets none."], "Vitamin A": ["lower", "Europe 750 µg men / 650 µg women vs US 900 / 700 µg. Upper limit the same (3,000 µg)."], "Vitamin K": ["lower", "Europe 70 µg/day vs US 120 µg men / 90 µg women."], "Magnesium": ["lower", "Blood range the same (0.70–0.90 mmol/L = 1.7–2.2 mg/dL). Europe recommends 350 / 300 mg vs US 400–420 / 310–320 mg, and caps supplements at 250 mg vs 350 mg."], "TSH": ["same", "Same mIU/L."], "Free T4": ["same", "10–23 pmol/L ≈ 0.8–1.8 ng/dL."], "Testosterone": ["higher", "Europe calls low below about 12 nmol/L ≈ 350 ng/dL; US urology uses 300 ng/dL."], "Estradiol": ["same", "37–147 pmol/L ≈ 10–40 pg/mL."], "Cortisol": ["same", "140–690 nmol/L ≈ 5–25 mcg/dL."], "Fasting insulin": ["same", "12–120 pmol/L ≈ 2–20 µIU/mL."], "Prolactin": ["same", "530 mIU/L ≈ 25 ng/mL; 320–425 ≈ 15–20 ng/mL."], "Creatine monohydrate": ["same", "Europe's 3 g/day claim fits the US 3–5 g typical dose."], "Fish oil (omega-3)": ["same", "Both EFSA and the FDA consider up to 5 g/day EPA+DHA safe."], "Protein powder (whey)": ["same", "Europe 0.83 g/kg/day vs US 0.8 g/kg, nearly the same."], "Melatonin": ["different", "Europe's claims use 0.5–1 mg and higher doses are often medicines; US stores sell 3–10 mg pills freely."], "Caffeine": ["same", "Both say up to 400 mg/day for healthy adults and about 200 mg in pregnancy."], "Biotin (B7)": ["higher", "Europe 40 µg/day vs US 30 µg."], "Ashwagandha": ["different", "Banned in supplements in Denmark and restricted elsewhere in Europe; sold freely in the US."], "Zinc": ["lower", "Europe's upper limit is 25 mg/day vs US 40 mg."], "Psyllium fiber": ["same", "No limit set in either."], "AST (liver/muscle enzyme)": ["same", "Same unit and similar limits."], "GGT": ["same", "Same unit and similar limits."], "Bilirubin": ["same", "2–21 µmol/L ≈ 0.1–1.2 mg/dL."], "Albumin": ["same", "35–50 g/L = 3.5–5.0 g/dL."], "Calcium (blood)": ["same", "2.15–2.55 mmol/L ≈ 8.6–10.2 mg/dL."], "MCV": ["same", "Same fL."], "BUN": ["same", "Urea 2.5–7.1 mmol/L ≈ BUN 7–20 mg/dL."], "ApoB": ["different", "Europe sets goals by risk: under 100 / 80 / 65 mg/dL vs a general US goal under 90."], "Lp(a)": ["same", "Europe and US guidelines both flag risk above 50 mg/dL; the card's “under 30” is a stricter lab cut-off."], "Homocysteine": ["same", "Same µmol/L."], "Urine bilirubin": ["same", "Same test."], "Urobilinogen": ["same", "3–17 µmol/L ≈ 0.2–1.0 mg/dL."], "Urine color": ["same", "Same everywhere."], "Vitamin E": ["lower", "Europe 13 mg men / 11 mg women vs US 15 mg. Upper limit 300 mg vs US 1,000 mg."], "Vitamin B6": ["lower", "Europe's upper limit is 12 mg/day vs US 100 mg, over 8 times lower."], "Thiamine (B1)": ["same", "About 1 mg/day vs US 1.1–1.2 mg, nearly the same."], "Iodine": ["lower", "Same 150 µg daily need, but Europe's upper limit is 600 µg vs US 1,100 µg."], "Free T3": ["same", "3.5–6.5 pmol/L ≈ 2.3–4.2 pg/mL."], "SHBG": ["same", "Same nmol/L."], "DHEA-S": ["different", "Same test, but DHEA pills are sold freely in the US and mostly not as supplements in Europe."], "Parathyroid hormone (PTH)": ["same", "1.6–6.9 pmol/L ≈ 15–65 pg/mL."], "IGF-1": ["same", "Age-based in both."], "Iron pills": ["lower", "Europe's safe level is 40 mg/day vs the US upper limit of 45 mg."], "Calcium supplements": ["same", "Similar daily need (950–1,000 vs 1,000–1,200 mg) and upper limits (2,500 vs 2,000–2,500 mg)."], "Turmeric / curcumin": ["lower", "Europe's acceptable intake is about 210 mg curcumin/day for 70 kg; US supplements often have 500–2,000 mg."], "Probiotics": ["different", "The word “probiotic” is mostly banned on EU labels; common on US labels."], "Collagen": ["same", "No limits in either."]};
+const CMPL = {same: "✓ Same", higher: "▲ Europe higher", lower: "▼ Europe lower", different: "≠ Different rules"};
+CARDS.forEach(c => { const x = CMP[c.n]; if (x) { c.cmp = x[0]; c.cmpT = x[1]; } });
+const cmpLine = c => c.cmp ? `<span class="vs"><span class="pill ${c.cmp}">${CMPL[c.cmp]}</span> 🇪🇺→🇺🇸 ${esc(c.cmpT)}</span>` : "";
+const ext = (label, url) => url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} ↗</a>` : esc(label);
+const ytUrl = c => "https://www.youtube.com/results?search_query=" + encodeURIComponent(c.n.replace(/\s*\(.*?\)/g, "") + " explained");
+const srcBox = c => c.src ? `<div class="clue src">
+    <b>🇪🇺 In Europe</b><span>${esc(c.eu)}</span><small>Source: ${ext(c.euSrc[0], c.euSrc[1])}</small>
+    ${cmpLine(c)}
+    <b style="margin-top:6px">📚 Learn more</b>
+    <span class="links">${ext(c.src[0], c.src[1])}<a href="${ytUrl(c)}" target="_blank" rel="noopener">▶ YouTube videos ↗</a></span>
+  </div>` : "";
+const rootBox = c => c.root ? `<div class="clue root"><b>Word roots</b>${esc(c.root)}</div>` : "";
+const abLine = c => c.ab ? `<span class="abbr">${esc(c.ab)}</span>` : "";
+
+// ---------- state ----------
+let filter = "All";
+let mode = "cards";
+let deck = [], idx = 0, flipped = false;
+let quiz = null;
+
+const $ = s => document.querySelector(s);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pool = () => filter === "All" ? CARDS : CARDS.filter(c => c.s === filter);
+
+const RIGHT = ["Yeehaw! Dead center!","Sharp shootin', partner!","You're slicker than a greased pig!","That's a bullseye, cowpoke!","Well butter my biscuit, you got it!","Smart as a whip!"];
+const WRONG = ["Whoa there, buckaroo.","Bucked clean off that one.","Missed by a country mile.","That horse threw ya.","Plumb wrong, but you'll ride again.","Shot the barn door instead of the varmint."];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+// ---------- sound ----------
+let soundOn = true, AC = null;
+function actx(){
+  try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); return AC; }
+  catch (e) { return null; }
+}
+function note(f, t, d, type = "triangle", vol = .2){
+  const c = actx(); if (!c) return;
+  const o = c.createOscillator(), g = c.createGain(), at = c.currentTime + t;
+  o.type = type; o.frequency.setValueAtTime(f, at);
+  g.gain.setValueAtTime(.0001, at);
+  g.gain.exponentialRampToValueAtTime(vol, at + .012);
+  g.gain.exponentialRampToValueAtTime(.0001, at + d);
+  o.connect(g).connect(c.destination); o.start(at); o.stop(at + d + .05);
+}
+// banjo-ish pluck: bright attack, quick decay
+const pluck = (f, t, d = .35) => { note(f, t, d, "sawtooth", .08); note(f * 2, t, d * .6, "triangle", .05); };
+function yeehaw(){ if (!soundOn) return; [392, 494, 587, 784].forEach((f, i) => pluck(f, i * .09, i === 3 ? .6 : .3)); }
+function wahwah(){ if (!soundOn) return; [311, 294, 277].forEach((f, i) => note(f, i * .28, .3, "square", .06)); note(262, .84, .7, "square", .06); }
+// opening of "Oh! Susanna" (public domain) as a lead-in
+const SUSANNA = [[262,.0],[294,.15],[330,.3],[392,.45],[392,.75],[440,.9],[392,1.05],[330,1.2],[262,1.5]];
+function singMemo(text){
+  if (!soundOn) return;
+  SUSANNA.forEach(([f, t]) => pluck(f, t, .3));
+  const ss = window.speechSynthesis; if (!ss) return;
+  try {
+    ss.cancel();
+    const parts = text.split(/(?<=[.:!?,;])\s+/).filter(Boolean);
+    setTimeout(() => parts.forEach((p, i) => {
+      const u = new SpeechSynthesisUtterance(p.replace(/[“”"]/g, ""));
+      u.pitch = i % 2 ? .8 : 1.5; u.rate = .9; ss.speak(u);
+    }), 1800);
+  } catch (e) {}
+}
+const memoBox = c => `<div class="memo"><b>Memory trick</b>${esc(c.m)}<button class="helper sing" data-m="${esc(c.m)}">🎵 Sing it</button></div>`;
+document.addEventListener("click", e => {
+  const b = e.target.closest(".sing"); if (!b) return;
+  e.stopPropagation(); singMemo(b.dataset.m);
+}, true);
+$("#sound").onclick = () => {
+  soundOn = !soundOn;
+  $("#sound").setAttribute("aria-pressed", soundOn);
+  $("#sound").textContent = soundOn ? "🔊 Sound on" : "🔇 Sound off";
+  if (!soundOn) try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {}
+};
+
+// ---------- chips & tabs ----------
+function renderChips(){
+  $("#qsection").innerHTML = ["All", ...SECTIONS].map(x => `<option value="${esc(x)}" ${x === filter ? "selected" : ""}>${esc(x)}</option>`).join("");
+  $("#chips").innerHTML = ["All", ...SECTIONS].map(s =>
+    `<button class="chip" aria-pressed="${s === filter}" data-s="${esc(s)}">${esc(s)} <span class="count">${s === "All" ? CARDS.length : CARDS.filter(c => c.s === s).length}</span></button>`).join("");
+}
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  filter = b.dataset.s; renderChips();
+  if (mode === "cards") startCards(); else if (mode === "list") renderList(); else startQuiz();
+});
+$("#qsection").onchange = e => { filter = e.target.value; renderChips(); startQuiz(); };
+function setMode(m){
+  mode = m;
+  document.documentElement.classList.toggle("quizmode", m === "quiz");
+  if (m !== "cards") stopAuto();
+  if (m !== "quiz") stopQAuto();
+  window.scrollTo(0, 0);
+  $("#tab-cards").setAttribute("aria-selected", m === "cards");
+  $("#tab-quiz").setAttribute("aria-selected", m === "quiz");
+  $("#cards-view").hidden = m !== "cards";
+  $("#quiz-view").hidden = m !== "quiz";
+  $("#tab-list").setAttribute("aria-selected", m === "list");
+  $("#list-view").hidden = m !== "list";
+  if (m === "list") renderList(); else if (m === "cards") startCards(); else if (!quiz || quiz.filter !== filter) startQuiz(); else renderQuiz();
+}
+$("#tab-cards").onclick = () => setMode("cards");
+$("#tab-quiz").onclick = () => setMode("quiz");
+$("#tab-list").onclick = () => setMode("list");
+
+// ---------- flash cards ----------
+// ---------- haptics ----------
+// Android: Vibration API. iPhone (Safari 18+): toggling a hidden switch control gives a light tap.
+const hapLabel = document.createElement("label");
+hapLabel.innerHTML = '<input type="checkbox" switch tabindex="-1">';
+hapLabel.setAttribute("aria-hidden", "true");
+hapLabel.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none";
+document.body.append(hapLabel);
+function haptic(n = 1){
+  try {
+    if (navigator.vibrate) { navigator.vibrate(n === 1 ? 15 : [20, 70, 20]); return; }
+    for (let i = 0; i < n; i++) setTimeout(() => hapLabel.click(), i * 110);
+  } catch (e) {}
+}
+
+// ---------- swipe ----------
+function onSwipe(el, fn){
+  let x0 = null, y0 = 0, t0 = 0;
+  el.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1 || e.target.closest("select")) { x0 = null; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, {passive: true});
+  el.addEventListener("touchend", e => {
+    if (x0 == null) return;
+    const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && Date.now() - t0 < 900) fn(dx < 0 ? "left" : "right");
+  }, {passive: true});
+}
+
+// ---------- auto-play ----------
+const auto = {on: false, front: 5, back: 20, timer: null, lock: null};
+async function keepAwake(on){
+  try {
+    if (on && navigator.wakeLock && !auto.lock) auto.lock = await navigator.wakeLock.request("screen");
+    if (!on && auto.lock) { await auto.lock.release(); auto.lock = null; }
+  } catch (e) { auto.lock = null; }
+}
+document.addEventListener("visibilitychange", () => { if (auto.on && document.visibilityState === "visible") { auto.lock = null; keepAwake(true); } });
+function stopAuto(){ auto.on = false; clearTimeout(auto.timer); keepAwake(false); }
+function scheduleAuto(){
+  clearTimeout(auto.timer);
+  if (!auto.on || mode !== "cards") return;
+  const secs = flipped ? auto.back : auto.front;
+  auto.timer = setTimeout(() => {
+    if (!flipped) { flipped = true; }
+    else { idx = (idx + 1) % deck.length; flipped = false; }
+    renderCard();
+    $("#cards-view").scrollIntoView({block: "start"});
+  }, secs * 1000);
+  return secs;
+}
+function autoBar(){
+  const secs = auto.on ? (flipped ? auto.back : auto.front) : 0;
+  return `<div class="autobar">
+    <button class="btn ${auto.on ? "primary" : ""}" id="auto">${auto.on ? "⏸ Pause" : "▶ Auto-play"}</button>
+    <label class="autolbl">Answer stays
+      <select id="autoback" class="qsection" style="display:inline-block">${[10, 15, 20, 30, 45].map(n => `<option value="${n}" ${n === auto.back ? "selected" : ""}>${n} s</option>`).join("")}</select>
+    </label>
+    ${auto.on ? `<div class="autoprog"><span style="animation-duration:${secs}s"></span></div><span class="autonote">${flipped ? "Next card soon…" : `Answer in ${auto.front} s…`}</span>` : ""}
+  </div>`;
+}
+
+function startCards(shuf){ deck = shuf ? shuffle(pool()) : pool().slice(); idx = 0; flipped = false; renderCard(); }
+function renderCard(){
+  const c = deck[idx];
+  const face = !flipped ? `
+    <div class="poster front${flipped ? "" : " enter"}" id="flip" role="button" tabindex="0" aria-label="Flip card">
+      <span class="eyebrow">${esc(c.s)}</span>
+      <span class="wanted">★ WANTED ★</span>
+      <span class="icon" aria-hidden="true">${c.i}</span>
+      <h2>${esc(c.n)}</h2>
+      ${abLine(c)}
+      <p class="hint">${esc(c.hint)}</p>
+      <span class="tapnote">Tap to flip · swipe for next or back</span>
+    </div>` : `
+    <div class="poster back" id="flip" role="button" tabindex="0" aria-label="Flip card back">
+      <span class="eyebrow">${esc(c.s)}</span>
+      <div class="backhead"><span class="icon sm" aria-hidden="true">${c.i}</span><div class="bt"><h2>${esc(c.n)}</h2>${abLine(c)}</div></div>
+      <p class="what">${esc(c.what)}</p>
+      <div class="range">${esc(c.range)}</div>
+      <div class="facts">
+        <div class="fact hi"><h3>${c.s === "Supplements" ? "Too much" : "If high"}</h3><p>${esc(c.hi)}</p></div>
+        <div class="fact lo"><h3>${c.s === "Supplements" ? "Too little / notes" : "If low"}</h3><p>${esc(c.lo)}</p></div>
+        <div class="fact fix"><h3>How to wrangle it</h3><p>${esc(c.fix)}</p></div>
+      </div>
+      ${memoBox(c)}
+      ${rootBox(c)}
+      ${srcBox(c)}
+      <p class="quip">“${esc(c.quip)}”</p>
+    </div>`;
+  $("#cards-view").innerHTML = autoBar() + face + `
+    <div class="controls">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="prev" ${idx === 0 ? "disabled" : ""}>← Back</button>
+        <button class="btn primary" id="next">${idx === deck.length - 1 ? "Start over" : "Next →"}</button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="count">${idx + 1} / ${deck.length}</span>
+        <button class="btn" id="shuf">Shuffle</button>
+      </div>
+    </div>`;
+  const f = $("#flip");
+  f.onclick = e => { if (e && e.target.closest("a")) return; flipped = !flipped; haptic(); renderCard(); $("#flip").focus({preventScroll: true}); };
+  f.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); f.onclick(); } };
+  $("#prev").onclick = () => { if (idx > 0) { idx--; flipped = false; renderCard(); } };
+  $("#next").onclick = () => { idx = (idx + 1) % deck.length; flipped = false; renderCard(); };
+  $("#shuf").onclick = () => startCards(true);
+  $("#auto").onclick = () => { if (auto.on) stopAuto(); else { auto.on = true; keepAwake(true); } renderCard(); };
+  $("#autoback").onchange = e => { auto.back = +e.target.value; renderCard(); };
+  scheduleAuto();
+}
+document.addEventListener("keydown", e => {
+  if (mode !== "cards" || e.target.closest("button")) return;
+  if (e.key === "ArrowRight") $("#next").click();
+  if (e.key === "ArrowLeft") $("#prev").click();
+});
+
+// ---------- quiz ----------
+// ---------- answer list ----------
+const BODY = {"🍺 Liver": ["Total protein", "Globulin & A/G ratio", "Alkaline phosphatase (ALP)", "ALT (liver enzyme)", "AST (liver/muscle enzyme)", "GGT", "Bilirubin", "Albumin", "Urine bilirubin", "Urobilinogen"], "🫘 Kidneys & urine": ["Creatinine & eGFR", "BUN", "BUN/creatinine ratio", "Urine albumin (ACR)", "Specific gravity", "Urine pH", "Blood in urine", "Nitrites & leukocyte esterase", "Urine color", "Uric acid"], "❤️ Heart & cholesterol": ["LDL cholesterol", "HDL cholesterol", "Triglycerides", "ApoB", "Lp(a)", "hs-CRP", "Homocysteine", "Fish oil (omega-3)"], "🍬 Blood sugar": ["Fasting glucose", "HbA1c", "Fasting insulin", "Urine glucose", "Ketones"], "🩸 Blood cells & iron": ["Hemoglobin", "White blood cells (WBC)", "Platelets", "MCV", "Ferritin", "Iron pills", "Vitamin B12", "Folate (B9)", "Vitamin K"], "🧂 Salts & minerals": ["Chloride", "Carbon dioxide (CO2 / bicarbonate)", "Sodium", "Potassium", "Magnesium", "Zinc"], "🦴 Bones & calcium": ["Calcium (blood)", "Parathyroid hormone (PTH)", "Vitamin D (25-OH)", "Calcium supplements", "Collagen"], "🦋 Thyroid": ["TSH", "Free T4", "Free T3", "Iodine"], "🐂 Sex & growth hormones": ["Testosterone", "Estradiol", "SHBG", "DHEA-S", "Prolactin", "PSA (men)", "IGF-1"], "🧠 Brain, stress & sleep": ["Cortisol", "Melatonin", "Caffeine", "Ashwagandha", "Thiamine (B1)", "Vitamin B6"], "💪 Muscle & fitness": ["Creatine monohydrate", "Protein powder (whey)"], "🌿 Gut & digestion": ["Probiotics", "Psyllium fiber", "Turmeric / curcumin"], "👁️ Eyes, skin & immunity": ["Vitamin A", "Vitamin C", "Vitamin E", "Biotin (B7)"]};
+const bodyOf = {}; Object.entries(BODY).forEach(([k, names]) => names.forEach(n => bodyOf[n] = k));
+const rangeLabel = c => c.s === "Supplements" ? `Which matches the typical dose or limit for ${c.n}?`
+  : c.s === "Vitamins & minerals" ? `Which is the typical range or daily need for ${c.n}?`
+  : `Which is the typical adult range for ${c.n}?`;
+const listState = {sort: "az", q: ""};
+function renderList(){
+  const term = listState.q.trim().toLowerCase();
+  const cards = pool().filter(c => !term || [c.n, c.ab, c.q, c.a, c.range, c.what].join(" ").toLowerCase().includes(term));
+  const keyOf = c => listState.sort === "az" ? c.n.replace(/^[^A-Za-z0-9]+/, "")[0].toUpperCase()
+    : listState.sort === "section" ? c.s : listState.sort === "vs" ? CMPL[c.cmp] : (bodyOf[c.n] || "Other");
+  const order = listState.sort === "section" ? SECTIONS : listState.sort === "body" ? [...Object.keys(BODY), "Other"] : listState.sort === "vs" ? ["different", "lower", "higher", "same"].map(k => CMPL[k]) : null;
+  const groups = {};
+  cards.slice().sort((a, b) => a.n.localeCompare(b.n)).forEach(c => (groups[keyOf(c)] ||= []).push(c));
+  const keys = order ? order.filter(k => groups[k]) : Object.keys(groups).sort();
+  const row = c => `<article class="li">
+      <div class="lihead"><span class="lic" aria-hidden="true">${c.i}</span><div class="bt"><b>${esc(c.n)}</b>${abLine(c)}</div></div>
+      <dl>
+        <dt>${esc(c.q)}</dt><dd>${esc(c.a)}</dd>
+        <dt>${esc(rangeLabel(c))}</dt><dd>${esc(c.range)}</dd>
+        <dt>🇪🇺 In Europe</dt><dd>${esc(c.eu || "")} <small class="srcl">(${ext(c.euSrc ? c.euSrc[0] : "", c.euSrc ? c.euSrc[1] : null)})</small></dd>
+        <dd>${cmpLine(c)}</dd>
+      </dl>
+      <span class="links">${c.src ? ext(c.src[0], c.src[1]) : ""}<a href="${ytUrl(c)}" target="_blank" rel="noopener">▶ YouTube ↗</a></span>
+    </article>`;
+  const sortBtn = (k, label) => `<button class="chip" aria-pressed="${listState.sort === k}" data-sort="${k}">${label}</button>`;
+  const html = `<div class="listbar">
+      <div class="chips">${sortBtn("az", "A–Z")}${sortBtn("section", "By section")}${sortBtn("body", "By body part")}${sortBtn("vs", "🇺🇸 vs 🇪🇺")}</div>
+      <input id="lsearch" type="search" placeholder="Search, e.g. liver or iron" value="${esc(listState.q)}" aria-label="Search questions">
+    </div>
+    <p class="count">${cards.length} markers · ${cards.length * 2} questions</p>
+    ${keys.length ? keys.map(k => `<section class="lgroup"><h3>${esc(k)}</h3>${groups[k].map(row).join("")}</section>`).join("") : `<p>No varmints match that search, partner.</p>`}`;
+  $("#list-view").innerHTML = html;
+  $("#list-view").querySelectorAll("[data-sort]").forEach(b => b.onclick = () => { listState.sort = b.dataset.sort; haptic(); renderList(); });
+  const inp = $("#lsearch");
+  inp.oninput = () => { listState.q = inp.value; const pos = inp.selectionStart; renderList(); const n = $("#lsearch"); n.focus(); n.setSelectionRange(pos, pos); };
+}
+
+function buildQuestions(cards){
+  const qs = [];
+  cards.forEach(c => {
+    qs.push({id: c.n + ":q", prompt: c.q, answer: c.a, opts: shuffle([c.a, ...c.w]), card: c});
+    const others = shuffle(CARDS.filter(o => o.s === c.s && o !== c)).slice(0, 3).map(o => o.range);
+    if (others.length === 3) {
+      const label = c.s === "Supplements" ? `Which matches the typical dose or limit for ${c.n}?`
+        : c.s === "Vitamins & minerals" ? `Which is the typical range or daily need for ${c.n}?`
+        : `Which is the typical adult range for ${c.n}?`;
+      qs.push({id: c.n + ":r", prompt: label, answer: c.range, opts: shuffle([c.range, ...others]), card: c});
+    }
+  });
+  return shuffle(qs);
+}
+function startQuiz(missesOnly){
+  let qs;
+  if (missesOnly && quiz) qs = shuffle(quiz.all.filter(q => quiz.missed.has(q.id)).map(q => ({...q, opts: shuffle(q.opts)})));
+  else qs = buildQuestions(pool());
+  quiz = {filter, all: qs, queue: qs.slice(), total: qs.length, firstRight: 0, wrong: 0, streak: 0, best: 0,
+          missed: new Set(), seen: new Set(), cleared: 0, current: null, answered: null, hist: [], review: null};
+  nextQ();
+}
+function nextQ(){
+  if (quiz.current && quiz.answered) quiz.hist.push({q: quiz.current, a: quiz.answered});
+  quiz.review = null;
+  quiz.current = quiz.queue.shift() || null;
+  quiz.answered = null; quiz.showClue = false; quiz.showMemo = false; quiz.showRoot = false;
+  quiz.anim = true; renderQuiz(); quiz.anim = false;
+}
+function answer(opt){
+  const q = quiz.current; if (quiz.answered) return;
+  clearQ();
+  const ok = opt === q.answer;
+  const retry = quiz.seen.has(q.id);
+  quiz.seen.add(q.id);
+  quiz.answered = {opt, ok, retry, line: ok ? pick(RIGHT) : pick(WRONG)};
+  ok ? yeehaw() : wahwah();
+  haptic(ok ? 1 : 2);
+  if (ok) {
+    quiz.streak++; quiz.best = Math.max(quiz.best, quiz.streak); quiz.cleared++;
+    if (!retry) quiz.firstRight++;
+  } else {
+    quiz.streak = 0; quiz.wrong++; quiz.missed.add(q.id);
+    // send it back into the herd a few questions later
+    const pos = Math.min(quiz.queue.length, 2 + Math.floor(Math.random() * 3));
+    quiz.queue.splice(pos, 0, {...q, opts: shuffle(q.opts)});
+  }
+  renderQuiz();
+}
+function rank(p){
+  if (p >= .95) return "Sheriff of Labtown";
+  if (p >= .8) return "Trail Boss";
+  if (p >= .6) return "Ranch Hand";
+  if (p >= .4) return "Saddle Sore Greenhorn";
+  return "Tenderfoot (keep ridin')";
+}
+// ---------- quiz auto-play ----------
+const qauto = {on: false, think: 10, show: 15, timers: [], forQ: null, doneFor: null};
+function clearQ(){ qauto.timers.forEach(clearTimeout); qauto.timers = []; }
+const later = (fn, ms) => qauto.timers.push(setTimeout(fn, ms));
+const tick = (hi) => { if (soundOn) note(hi ? 1500 : 1100, 0, .05, "square", .05); };
+const clack = () => { if (soundOn) note(420, 0, .08, "square", .07); };
+function stopQAuto(){ qauto.on = false; clearQ(); qauto.forQ = qauto.doneFor = null; keepAwake(false); }
+function runQAuto(){
+  const z = quiz, q = z && z.current;
+  if (!qauto.on || mode !== "quiz") return;
+  if (z && z.review != null) { clearQ(); qauto.forQ = qauto.doneFor = null; return; }
+  if (!q) { stopQAuto(); return; }
+  if (z.answered) {
+    if (qauto.doneFor === q) return;
+    clearQ(); qauto.doneFor = q;
+    // slowly scroll the explanation so it can be read hands-free
+    later(() => {
+      const el = document.querySelector("#quiz-view .poster"); if (!el) return;
+      const dist = el.scrollHeight - el.clientHeight, dur = (qauto.show - 4) * 1000, t0 = performance.now();
+      const step = now => {
+        if (!qauto.on || quiz.current !== q) return;
+        const k = Math.min(1, (now - t0) / dur); el.scrollTop = dist * k;
+        if (k < 1) requestAnimationFrame(step);
+      };
+      if (dist > 0) requestAnimationFrame(step);
+    }, 2500);
+    later(nextQ, qauto.show * 1000);
+    return;
+  }
+  if (qauto.forQ === q) return;
+  clearQ(); qauto.forQ = q;
+  const cd = () => $("#qcd");
+  for (let t = qauto.think; t >= 1; t--) {
+    later(() => { if (cd()) cd().textContent = `⏱ ${t}`; tick(t <= 3); }, (qauto.think - t) * 1000);
+  }
+  const start = qauto.think * 1000;
+  later(() => { if (cd()) cd().textContent = "⏱ 0"; }, start);
+  // cross out the wrong answers one by one, then reveal the right one
+  const wrongIdx = shuffle(q.opts.map((o, i) => i).filter(i => q.opts[i] !== q.answer));
+  wrongIdx.forEach((i, k) => later(() => {
+    const b = document.querySelector(`.opt[data-i="${i}"]`); if (b) b.classList.add("out"); clack();
+  }, start + 400 + k * 800));
+  later(() => {
+    if (z.current !== q || z.answered) return;
+    z.seen.add(q.id); z.cleared++;
+    z.answered = {opt: null, ok: true, retry: false, reveal: true, line: "Here's the right answer, partner!"};
+    yeehaw(); renderQuiz();
+  }, start + 400 + wrongIdx.length * 800 + 300);
+}
+function qautoBar(){
+  return `<div class="autobar">
+    <button class="btn ${qauto.on ? "primary" : ""}" id="qauto">${qauto.on ? "⏸ Pause" : "▶ Auto-play"}</button>
+    <label class="autolbl">Answer
+      <select id="qshow" class="qsection" style="display:inline-block">${[10, 15, 20, 30].map(n => `<option value="${n}" ${n === qauto.show ? "selected" : ""}>${n} s</option>`).join("")}</select>
+    </label>
+    <label class="autolbl">Think
+      <select id="qthink" class="qsection" style="display:inline-block">${[5, 10, 15, 20].map(n => `<option value="${n}" ${n === qauto.think ? "selected" : ""}>${n} s</option>`).join("")}</select>
+    </label>
+    ${qauto.on ? `<span class="qcd" id="qcd">${quiz.answered ? "✓" : `⏱ ${qauto.think}`}</span>` : ""}
+  </div>`;
+}
+
+function renderQuiz(){
+  const z = quiz;
+  const rv = z.review != null ? z.hist[z.review] : null;
+  const board = (z.current ? qautoBar() : "") + `
+    <div class="score">
+      <div class="stat"><b>${z.firstRight}</b><small>First-try hits</small></div>
+      <div class="stat"><b>${z.wrong}</b><small>Bucked off</small></div>
+      <div class="stat"><b>${z.streak}</b><small>Streak (best ${z.best})</small></div>
+      <div class="stat"><b>${z.total - z.cleared}</b><small>Left to rope</small></div>
+    </div>`;
+  if (!z.current && !rv) {
+    const p = z.total ? z.firstRight / z.total : 0;
+    const missed = z.all.filter(q => z.missed.has(q.id));
+    $("#quiz-view").innerHTML = board + `
+      <div class="poster end">
+        <span class="wanted">★ ROUND-UP COMPLETE ★</span>
+        <h2>${Math.round(p * 100)}% on the first try</h2>
+        <span class="rank">${rank(p)}</span>
+        <p>${z.firstRight} of ${z.total} roped clean. Every miss came back around until you got it right.</p>
+        ${missed.length ? `<p style="margin:0"><strong>Varmints that threw you:</strong></p><ul class="misslist">${[...new Set(missed.map(q => q.card.n))].map(n => `<li>${esc(n)}</li>`).join("")}</ul>` : `<p>Not one miss. Somebody pin a star on this cowpoke.</p>`}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+          ${missed.length ? `<button class="btn primary" id="again-miss">Ride again on misses (${missed.length})</button>` : ""}
+          <button class="btn" id="again">New round</button>
+        </div>
+      </div>`;
+    $("#again").onclick = () => startQuiz();
+    if ($("#again-miss")) $("#again-miss").onclick = () => startQuiz(true);
+    return;
+  }
+  const q = rv ? rv.q : z.current, a = rv ? rv.a : z.answered;
+  $("#quiz-view").innerHTML = board + `
+    <div class="poster back${z.anim ? " enter" : ""}">
+<div class="qhead"><span class="icon" aria-hidden="true">${q.card.i}</span><div>
+      <span class="eyebrow">${esc(q.card.s)} · ${esc(q.card.n)} ${z.seen.has(q.id) && !a ? `<span class="retry">· Second go-round</span>` : (a && a.retry ? `<span class="retry">· Second go-round</span>` : "")}</span>
+      <p class="qtext">${esc(q.prompt)}</p>${abLine(q.card)}</div></div>
+      ${a ? "" : `<div class="helpers">
+        <button class="helper" id="h-clue" aria-expanded="${!!z.showClue}">🤠 What is it?</button>
+        <button class="helper" id="h-memo" aria-expanded="${!!z.showMemo}">💡 Memory trick</button>
+        ${q.card.root ? `<button class="helper" id="h-root" aria-expanded="${!!z.showRoot}">📜 Word roots</button>` : ""}
+      </div>
+      ${z.showClue ? `<div class="clue"><b>What it is</b>${esc(q.card.what)}</div>` : ""}
+      ${z.showMemo ? `${memoBox(q.card)}` : ""}
+      ${z.showRoot ? rootBox(q.card) : ""}`}
+      <div class="opts">${q.opts.map((o, i) => {
+        let cls = "opt";
+        if (a) { if (o === q.answer) cls += " right"; else if (o === a.opt) cls += " wrong"; else return ""; }
+        return `<button class="${cls}" data-i="${i}" ${a ? "disabled" : ""}>${esc(o)}</button>`;
+      }).join("")}</div>
+      ${a ? `<div class="feedback ${a.ok ? "ok" : "no"}">
+          <strong>${esc(a.line)}</strong>
+          ${a.ok ? "" : `<span>Right answer: <b>${esc(q.answer)}</b>. This one'll come back around shortly.</span>`}
+        </div>
+        <div class="clue"><b>What it is</b>${esc(q.card.what)}</div>
+        ${rootBox(q.card)}
+        ${memoBox(q.card)}
+        <div class="clue"><b>How to wrangle it</b>${esc(q.card.fix)}</div>
+        ${srcBox(q.card)}
+        ${rv ? `<div class="controls stick"><span class="count">Looking back ${z.hist.length - z.review} of ${z.hist.length}</span><button class="btn primary" id="nq">Back to current →</button></div>` : `<div class="controls stick"><span class="count">${z.queue.length} in the herd</span><button class="btn primary" id="nq">${z.queue.length ? "Next question →" : "See the round-up"}</button></div>`}` : ""}
+    </div>`;
+  $("#quiz-view").querySelectorAll(".opt").forEach(b => b.onclick = () => answer(q.opts[+b.dataset.i]));
+  if (a) { $("#nq").onclick = rv ? () => { z.review = null; renderQuiz(); } : nextQ; $("#nq").focus({preventScroll: true}); }
+  else {
+    $("#h-clue").onclick = () => { z.showClue = !z.showClue; renderQuiz(); };
+    $("#h-memo").onclick = () => { z.showMemo = !z.showMemo; renderQuiz(); };
+    if ($("#h-root")) $("#h-root").onclick = () => { z.showRoot = !z.showRoot; renderQuiz(); };
+  }
+  if ($("#qauto")) $("#qauto").onclick = () => {
+    if (qauto.on) stopQAuto(); else { qauto.on = true; qauto.forQ = qauto.doneFor = null; keepAwake(true); }
+    renderQuiz();
+  };
+  if ($("#qshow")) $("#qshow").onchange = e => { qauto.show = +e.target.value; if (qauto.on && z.answered) { qauto.doneFor = null; clearQ(); } renderQuiz(); };
+  if ($("#qthink")) $("#qthink").onchange = e => { qauto.think = +e.target.value; if (qauto.on) { qauto.forQ = null; clearQ(); } renderQuiz(); };
+  runQAuto();
+}
+
+renderChips();
+startCards();
+
+onSwipe($("#cards-view"), dir => {
+  if (dir === "left") { idx = (idx + 1) % deck.length; flipped = false; haptic(); renderCard(); }
+  else if (idx > 0) { idx--; flipped = false; haptic(); renderCard(); }
+});
+onSwipe($("#quiz-view"), dir => {
+  const z = quiz; if (!z) return;
+  if (dir === "left") {
+    if (z.review != null) { z.review++; if (z.review >= z.hist.length) z.review = null; haptic(); renderQuiz(); }
+    else if (z.answered) { haptic(); nextQ(); }
+    else if (z.current) { z.queue.push(z.current); z.current = null; haptic(); nextQ(); }
+  } else if (z.hist.length) {
+    z.review = z.review == null ? z.hist.length - 1 : Math.max(0, z.review - 1); haptic(); renderQuiz();
+  }
+});
+</script>
+</body>
+</html>
