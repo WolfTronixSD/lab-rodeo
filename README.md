@@ -6,8 +6,8 @@ Funny cowboy-themed flash cards and quiz for learning blood and urine lab marker
 
 ## What's inside
 
-- **79 cards**: blood, urine, vitamins & minerals, hormones and supplements. Each card covers what the marker is, the typical range, what high or low means, and how to change it.
-- **Quiz**: about 158 questions, score and streak tracking, and missed questions come back until you get them right.
+- **81 cards**: blood, urine, vitamins & minerals, hormones and supplements. Each card covers what the marker is, the typical range, what high or low means, and how to change it.
+- **Quiz**: about 162 questions, score and streak tracking, and missed questions come back until you get them right.
 - **Answers list**: every question with its answer, sorted A–Z, by section, by body part, or by US vs Europe.
 - **Learning helpers**: "What is it?" hints, memory tricks (with a 🎵 Sing it button), word roots and abbreviations, and a fun icon per card.
 - **Europe vs US**: European units and limits (EFSA, ESC/EAS, KDIGO, WHO, EAU) converted back to US units, color-coded same or different.
