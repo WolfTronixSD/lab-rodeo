@@ -149,8 +149,24 @@ a{color:var(--denim);text-underline-offset:2px}
 .pill.lower{color:var(--bad);background:var(--badbg)}
 .pill.higher{color:var(--brass);background:var(--bg)}
 .pill.different{color:var(--denim);background:var(--bg)}
+#map-view:not([hidden]){display:flex;flex-direction:column;gap:14px}
+.mm-root{align-self:center;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 22px;border:2px solid var(--ink);border-radius:999px;background:var(--panel);box-shadow:4px 4px 0 var(--line);text-align:center}
+.mm-root span{font-size:1.8rem;line-height:1}
+.mm-root b{font-family:var(--display);font-weight:400;font-size:1.3rem}
+.mm-root small{color:var(--muted);font-size:.78rem}
+.mm{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:14px;align-items:start}
+.mm-branch{--c:hsl(var(--h) 55% 34%);--cbg:hsl(var(--h) 60% 94%);border-left:3px solid var(--c);padding-left:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mm-branch{--c:hsl(var(--h) 65% 70%);--cbg:hsl(var(--h) 30% 18%)}}
+:root[data-theme="dark"] .mm-branch{--c:hsl(var(--h) 65% 70%);--cbg:hsl(var(--h) 30% 18%)}
+.mm-node{margin:0;margin-left:-12px;padding:6px 12px;font:700 .95rem var(--body);color:var(--c);background:var(--cbg);border-radius:0 999px 999px 0;display:flex;justify-content:space-between;align-items:center}
+.mm-n{font:600 .75rem var(--mono);opacity:.8}
+.mm-leaves{display:flex;flex-wrap:wrap;gap:6px}
+.mm-leaf{position:relative;display:inline-flex;gap:5px;align-items:center;font:500 .85rem var(--body);padding:5px 10px;border-radius:999px;border:1.5px solid var(--c);background:var(--panel);color:var(--ink);cursor:pointer}
+.mm-leaf:hover{background:var(--cbg)}
+.mm-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:2px}
+.mm-dot.lower{background:var(--bad)} .mm-dot.higher{background:var(--brass)} .mm-dot.different{background:var(--denim)}
 .disclaimer{font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin:0}
-@media (max-width:520px){.tab{padding:8px 11px;font-size:.88rem}.facts{grid-template-columns:1fr}.score{grid-template-columns:repeat(2,1fr)}.poster{padding:18px}}
+@media (max-width:520px){.tabs{gap:6px}.tab{padding:7px 9px;font-size:.84rem}.facts{grid-template-columns:1fr}.score{grid-template-columns:repeat(2,1fr)}.poster{padding:18px}}
 /* Quiz mode: one screen, no page scroll */
 .qsection{display:none;font:600 .85rem var(--body);padding:8px 10px;border-radius:4px;border:1.5px solid var(--line);background:var(--panel);color:var(--ink);max-width:100%}
 html.quizmode,html.quizmode body{height:100%;overflow:hidden}
@@ -161,7 +177,7 @@ html.quizmode .tag,html.quizmode .chips,html.quizmode .disclaimer{display:none}
 html.quizmode h1{font-size:1.5rem}
 html.quizmode .toprow{position:absolute;right:max(16px,env(safe-area-inset-right,0px));top:0}
 html.quizmode .qsection{display:block}
-html.quizmode .tab{padding:7px 12px;font-size:.9rem}
+html.quizmode .tab{padding:7px 9px;font-size:.84rem}
 #quiz-view:not([hidden]){display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
 #quiz-view .score{grid-template-columns:repeat(4,1fr);gap:6px}
 #quiz-view .stat{padding:4px 2px}
@@ -187,7 +203,8 @@ header{position:relative}
   <div class="tabs" role="tablist">
     <button class="tab" id="tab-cards" role="tab" aria-selected="true">🃏 Cards</button>
     <button class="tab" id="tab-quiz" role="tab" aria-selected="false">🎯 Quiz</button>
-    <button class="tab" id="tab-list" role="tab" aria-selected="false">📋 Answers</button>
+    <button class="tab" id="tab-list" role="tab" aria-selected="false">📋 List</button>
+    <button class="tab" id="tab-map" role="tab" aria-selected="false">🧠 Map</button>
     <select class="qsection" id="qsection" aria-label="Quiz section"></select>
   </div>
 
@@ -196,10 +213,12 @@ header{position:relative}
   <section id="cards-view"></section>
   <section id="quiz-view" hidden></section>
   <section id="list-view" hidden></section>
+  <section id="map-view" hidden></section>
 
   <details class="history">
     <summary>Version history</summary>
     <ol reversed>
+      <li><b>v17 · Oct 30, 2026</b> · New 🧠 Map tab: a mind map of every marker by body part; tap one to open its card.</li>
       <li><b>v16 · Oct 30, 2026</b> · New cards: MCH, MCHC and RDW (84 cards).</li>
       <li><b>v15 · Oct 30, 2026</b> · New cards: hematocrit and red blood cell count (81 cards).</li>
       <li><b>v14 · Oct 29, 2026</b> · New cards: chloride, CO2 (bicarbonate), total protein, globulin & A/G ratio, alkaline phosphatase (79 cards).</li>
@@ -1396,7 +1415,7 @@ function renderChips(){
 $("#chips").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
   filter = b.dataset.s; renderChips();
-  if (mode === "cards") startCards(); else if (mode === "list") renderList(); else startQuiz();
+  if (mode === "cards") startCards(); else if (mode === "list") renderList(); else if (mode === "map") renderMap(); else startQuiz();
 });
 $("#qsection").onchange = e => { filter = e.target.value; renderChips(); startQuiz(); };
 function setMode(m){
@@ -1411,11 +1430,14 @@ function setMode(m){
   $("#quiz-view").hidden = m !== "quiz";
   $("#tab-list").setAttribute("aria-selected", m === "list");
   $("#list-view").hidden = m !== "list";
-  if (m === "list") renderList(); else if (m === "cards") startCards(); else if (!quiz || quiz.filter !== filter) startQuiz(); else renderQuiz();
+  $("#tab-map").setAttribute("aria-selected", m === "map");
+  $("#map-view").hidden = m !== "map";
+  if (m === "map") renderMap(); else if (m === "list") renderList(); else if (m === "cards") startCards(); else if (!quiz || quiz.filter !== filter) startQuiz(); else renderQuiz();
 }
 $("#tab-cards").onclick = () => setMode("cards");
 $("#tab-quiz").onclick = () => setMode("quiz");
 $("#tab-list").onclick = () => setMode("list");
+$("#tab-map").onclick = () => setMode("map");
 
 // ---------- flash cards ----------
 // ---------- haptics ----------
@@ -1573,6 +1595,32 @@ function renderList(){
   $("#list-view").querySelectorAll("[data-sort]").forEach(b => b.onclick = () => { listState.sort = b.dataset.sort; haptic(); renderList(); });
   const inp = $("#lsearch");
   inp.oninput = () => { listState.q = inp.value; const pos = inp.selectionStart; renderList(); const n = $("#lsearch"); n.focus(); n.setSelectionRange(pos, pos); };
+}
+
+// ---------- mind map ----------
+// One hue per body-part branch; lightness comes from the theme tokens in CSS.
+const HUES = [35, 20, 350, 300, 0, 200, 40, 170, 25, 260, 120, 90, 50, 210];
+function renderMap(){
+  const cards = pool();
+  const keys = [...Object.keys(BODY), "Other"];
+  const branches = keys.map((k, i) => ({k, h: HUES[i % HUES.length], items: cards.filter(c => (bodyOf[c.n] || "Other") === k).sort((a, b) => a.n.localeCompare(b.n))}))
+    .filter(b => b.items.length);
+  $("#map-view").innerHTML = `
+    <div class="mm-root"><span>🤠</span><b>Lab Rodeo</b><small>${cards.length} markers · ${branches.length} body parts</small></div>
+    <div class="mm">${branches.map(b => `
+      <section class="mm-branch" style="--h:${b.h}">
+        <h3 class="mm-node">${esc(b.k)} <span class="mm-n">${b.items.length}</span></h3>
+        <div class="mm-leaves">${b.items.map(c => `<button class="mm-leaf" data-n="${esc(c.n)}" title="${esc(c.hint)}"><span aria-hidden="true">${c.i}</span>${esc(c.n)}${c.cmp && c.cmp !== "same" ? `<i class="mm-dot ${c.cmp}" title="${esc(CMPL[c.cmp])}"></i>` : ""}</button>`).join("")}</div>
+      </section>`).join("")}
+    </div>
+    <p class="count">Tap a marker to open its flash card. A colored dot means Europe's numbers or rules differ.</p>`;
+  $("#map-view").querySelectorAll(".mm-leaf").forEach(btn => btn.onclick = () => openCard(btn.dataset.n));
+}
+function openCard(name){
+  filter = "All"; renderChips();
+  setMode("cards");
+  idx = Math.max(0, deck.findIndex(c => c.n === name)); flipped = false; haptic();
+  renderCard(); window.scrollTo(0, 0);
 }
 
 function buildQuestions(cards){
